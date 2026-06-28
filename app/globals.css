@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+@theme {
+  --color-darkBg: #080818;
+  --color-cyanPrimary: #00d4ff;
+  --color-pulseRed: #ff3b3b;
+  --color-pulseOrange: #ff8c00;
+  --color-pulseGold: #ffd700;
+  --color-neonGreen: #00ff88;
+  --font-sans: var(--font-inter), sans-serif;
+  --font-heading: var(--font-space-grotesk), sans-serif;
+}
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-space-grotesk: 'Space Grotesk', sans-serif;
+  
+  --bg-base: #080818;
+  --bg-surface: #0f0f23;
+  --bg-card: rgba(255,255,255,0.04);
+  --bg-card-hover: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --border-accent: rgba(0,212,255,0.3);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --cyan: #00d4ff;
+  --red: #ff3b3b;
+  --orange: #ff8c00;
+  --gold: #ffd700;
+  --green: #00ff88;
+}
+
+body {
+  background-color: #080818;
+  color: #f1f5f9;
+  font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: 600;
+}
+
+/* Dropdowns & Forms Visibility Fixes */
+select {
+  background-color: #0f0f23 !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  border-radius: 8px !important;
+}
+
+select option {
+  background-color: #0f0f23 !important;
+  color: #f1f5f9 !important;
+}
+
+input, textarea {
+  background-color: #0f0f23 !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: rgba(255,255,255,0.4) !important;
+}
+
+/* Glassmorphism Classes */
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(0, 212, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.glass-panel {
+  background: rgba(8, 8, 24, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080818;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00d4ff;
+}
+
+/* Skyline silhouette SVG container */
+.skyline-bg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 220px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 250' fill='%230f0f2d' opacity='0.55'%3E%3Cpath d='M0,250 L0,200 L40,200 L40,150 L60,150 L60,180 L100,180 L100,120 L130,120 L130,170 L170,170 L170,140 L210,140 L210,190 L250,190 L250,100 L300,100 L300,200 L350,200 L350,110 L380,110 L380,160 L420,160 L420,130 L450,130 L450,250 Z M450,250 L450,170 L480,170 L480,90 L520,90 L520,150 L560,150 L560,110 L600,110 L600,180 L650,180 L650,80 L700,80 L700,210 L750,210 L750,130 L800,130 L800,250 Z M800,250 L800,160 L830,160 L830,100 L870,100 L870,180 L920,180 L920,70 L960,70 L960,140 L1000,140 L1000,190 L1050,190 L1050,110 L1100,110 L1100,170 L1200,170 L1200,250 Z'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: bottom;
+  background-size: 100% auto;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    text-shadow: 0 0 4px rgba(0, 212, 255, 0.4), 0 0 12px rgba(0, 212, 255, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.8), 0 0 20px rgba(0, 212, 255, 0.4);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+/* Animation for slower spin */
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+select,
+select option {
+  background-color: #0f0f23 !important;
+  color: #f1f5f9 !important;
+}
+
+input, textarea, select {
+  color-scheme: dark;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+}
+
