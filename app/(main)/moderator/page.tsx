@@ -36,9 +36,6 @@ export default function ModeratorPage() {
   const [errorMsg, setErrorMsg] = useState("");
   
   // Escalation Modal state
-  const [letterModal, setLetterModal] = useState(false)
-  const [letter, setLetter] = useState('')
-  const [letterLoading, setLetterLoading] = useState(false)
 
   // Time ticker state
   const [currentTime, setCurrentTime] = useState("");
@@ -99,38 +96,6 @@ export default function ModeratorPage() {
       rejectedBy: currentUser?.uid,
       rejectedAt: serverTimestamp()
     })
-  }
-
-  const generateLetter = async (issue: any) => {
-    setLetterLoading(true)
-    setLetterModal(true)
-    try {
-      const res = await fetch('/api/gemini/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Generate a formal official complaint letter to municipal authority.
-Issue: ${issue.title}
-Category: ${issue.category}
-Location: ${issue.location?.address}
-Severity: ${issue.severity}/10
-Root Cause: ${issue.issueDNA?.rootCause}
-Reported: ${issue.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
-Community votes: ${issue.upvotes}
-
-Write a professional formal letter from CivicPulse platform
-demanding immediate action. Include issue details, impact on residents,
-and deadline for resolution. Sign as "CivicPulse AI Negotiation Agent".
-Plain text only, no markdown.`
-        })
-      })
-      const data = await res.json()
-      setLetter(data.text || 'Failed to generate letter')
-    } catch {
-      setLetter('Failed to generate letter. Try again.')
-    } finally {
-      setLetterLoading(false)
-    }
   }
 
   // Time ticker effect
@@ -389,15 +354,7 @@ Plain text only, no markdown.`
                       Approve
                     </button>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        generateLetter(item);
-                      }}
-                      className="px-3 py-1 bg-orange-400/10 text-orange-400 border border-orange-400/20 rounded-lg text-xs hover:bg-orange-400/20"
-                    >
-                      📨 Escalate
-                    </button>
+
                   </div>
                 </div>
               );
@@ -474,44 +431,7 @@ Plain text only, no markdown.`
         </div>
       </div>
 
-      {letterModal && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0f0f23] border border-white/10 rounded-2xl w-full max-w-2xl">
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <h3 className="text-white font-semibold">AI Escalation Letter</h3>
-              <button onClick={() => setLetterModal(false)} className="text-slate-400 hover:text-white">✕</button>
-            </div>
-            <div className="p-6">
-              {letterLoading ? (
-                <div className="flex items-center gap-3 text-cyan-400">
-                  <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"/>
-                  Generating letter...
-                </div>
-              ) : (
-                <textarea
-                  value={letter}
-                  onChange={e => setLetter(e.target.value)}
-                  className="w-full h-64 bg-white/5 border border-white/10 rounded-xl p-4 text-slate-300 text-sm resize-none focus:outline-none"
-                />
-              )}
-            </div>
-            <div className="flex gap-3 p-6 border-t border-white/10">
-              <button
-                onClick={() => navigator.clipboard.writeText(letter)}
-                className="px-4 py-2 bg-white/10 text-white rounded-xl text-sm hover:bg-white/20"
-              >
-                Copy Letter
-              </button>
-              <button
-                onClick={() => setLetterModal(false)}
-                className="px-4 py-2 bg-cyan-400 text-black rounded-xl text-sm font-semibold"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
     </div>
   );

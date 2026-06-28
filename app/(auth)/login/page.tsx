@@ -202,27 +202,14 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-4 space-y-2 mb-6">
-          <p className="text-xs text-center text-slate-500 uppercase tracking-widest">
-            Sign in with Google as
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => handleGoogleLogin('citizen')}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 py-3 bg-white text-black rounded-xl font-semibold text-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
-            >
-              <img src="https://www.google.com/favicon.ico" className="w-4 h-4" />
-              Citizen
-            </button>
-            <button
-              onClick={() => handleGoogleLogin('moderator')}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 py-3 bg-white text-black rounded-xl font-semibold text-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
-            >
-              <img src="https://www.google.com/favicon.ico" className="w-4 h-4" />
-              Moderator
-            </button>
-          </div>
+          <button
+            onClick={() => handleGoogleLogin(selectedRole)}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 py-3 bg-white text-black rounded-xl font-semibold text-sm hover:bg-gray-100 transition-colors w-full disabled:opacity-50"
+          >
+            <img src="https://www.google.com/favicon.ico" className="w-4 h-4" />
+            Sign in with Google
+          </button>
           <div className="flex items-center gap-3 my-2">
             <div className="flex-1 h-px bg-white/10"/>
             <span className="text-slate-500 text-xs">OR use phone OTP</span>

@@ -74,7 +74,7 @@ export default function MainLayout({
   const isModerator = currentUser?.role?.trim()?.toLowerCase() === "moderator" || userRole?.trim()?.toLowerCase() === "moderator";
 
   const desktopNavItems = [
-    { label: "Dashboard", href: "/dashboard", icon: Activity },
+    ...(!isModerator ? [{ label: "Dashboard", href: "/dashboard", icon: Activity }] : []),
     { label: "Live Map", href: "/map", icon: MapIcon },
     { label: "Report Issue", href: "/report", icon: Plus },
     { label: "AI Predict", href: "/predict", icon: TrendingUp },
@@ -83,7 +83,7 @@ export default function MainLayout({
   ];
 
   const mobileNavItems = [
-    { href: "/dashboard", icon: Activity, label: "Home" },
+    { href: isModerator ? "/moderator" : "/dashboard", icon: Activity, label: "Home" },
     { href: "/map", icon: MapIcon, label: "Map" },
     { href: "/report", icon: Plus, label: "Report", isFab: true },
     { href: "/predict", icon: TrendingUp, label: "Activity" },
@@ -101,7 +101,7 @@ export default function MainLayout({
             <Zap className="w-5 h-5 text-black" />
             <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-ping" />
           </div>
-          <Link href="/dashboard" className="text-xl font-bold tracking-wider font-heading text-white">
+          <Link href={isModerator ? "/moderator" : "/dashboard"} className="text-xl font-bold tracking-wider font-heading text-white">
             CIVIC<span className="text-cyan-400 font-extrabold">PULSE</span>
           </Link>
         </div>
