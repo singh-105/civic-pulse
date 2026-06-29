@@ -210,7 +210,7 @@ export default function ModeratorPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
             </span>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-extrabold">🔴 LIVE &bull; {currentTime}</p>
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-extrabold">LIVE &bull; {currentTime}</p>
           </div>
           <h2 className="text-2xl font-bold tracking-wide font-heading text-orange-400 flex items-center gap-2 mt-1">
             <ShieldAlert className="w-6 h-6" /> WAR ROOM: {profile?.ward || "Mumbai Central"}

@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
+const groq = new Groq({ apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY || '' });
 
 export async function POST(req: NextRequest) {
   try {
     const { prompt, imageBase64, systemInstruction } = await req.json();
     
-    if (!process.env.GROQ_API_KEY) {
-      console.error("GROQ_API_KEY server environment variable is not defined");
+    if (!process.env.NEXT_PUBLIC_GROQ_API_KEY && !process.env.GROQ_API_KEY) {
+      console.error("Groq API key environment variable is not defined");
       return NextResponse.json({ text: '{}', isFallback: true });
     }
 

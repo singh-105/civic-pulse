@@ -3,18 +3,7 @@ import { db } from "@/lib/firebase";
 import { fetchWeatherForecast } from "@/lib/weather";
 import { searchExa } from "@/lib/exa";
 import { fetchNews } from "@/lib/newsdata";
-
-// Text generation (decay predictions, DNA, etc) using Next.js API route:
-const generateText = async (prompt: string) => {
-  const res = await fetch('/api/gemini/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
-  });
-  if (!res.ok) throw new Error('Generation failed');
-  const data = await res.json();
-  return data.text;
-};
+import { generateText } from "@/lib/gemini";
 
 export interface ZonePrediction {
   zone: string;

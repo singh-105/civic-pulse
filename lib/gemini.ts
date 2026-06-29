@@ -1,11 +1,11 @@
 import Groq from "groq-sdk";
 
 function getGroqClient() {
-  const key = process.env.GROQ_API_KEY || "";
+  const key = process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY || "";
   if (!key) {
-    throw new Error("GROQ_API_KEY not set");
+    throw new Error("Groq API key not set");
   }
-  return new Groq({ apiKey: key });
+  return new Groq({ apiKey: key, dangerouslyAllowBrowser: true });
 }
 
 interface AnalysisResult {
@@ -25,18 +25,7 @@ interface AnalysisResult {
  * Analyzes a base64 encoded image using Groq Llama-4 vision
  */
 export async function analyzeImage(base64Image: string, customPrompt?: string): Promise<AnalysisResult> {
-  if (typeof window !== "undefined") {
-    // Client-side: route via proxy API endpoint to hide credentials
-    const res = await fetch("/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: base64Image })
-    });
-    if (!res.ok) throw new Error("AI analysis service failed");
-    return await res.json();
-  }
-
-  // Server-side
+  // Direct client-side and server-side analysis
   const imageAnalysisPrompt = `You are an expert municipal infrastructure AI.
 Analyze this image carefully and identify the EXACT civic issue visible.
 
@@ -125,18 +114,7 @@ Do NOT default to pothole. Look at actual image content.`;
  * Generates text completions using Groq Llama 3.3
  */
 export async function generateText(prompt: string, systemInstruction?: string): Promise<string> {
-  if (typeof window !== "undefined") {
-    // Client-side: proxy requests securely to the backend
-    const res = await fetch("/api/gemini", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, systemInstruction })
-    });
-    const data = await res.json();
-    return data.text || '{}';
-  }
-
-  // Server-side
+  // Direct client-side and server-side text generation
   try {
     const groq = getGroqClient();
     const messages: any[] = [];

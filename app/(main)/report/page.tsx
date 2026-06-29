@@ -8,6 +8,8 @@ import { detectDuplicateIssue } from "@/lib/agents/duplicate-detector";
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, collection, addDoc, increment, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { updateStreetMemory } from "@/lib/agents/street-memory";
+import { analyzeImage as geminiAnalyzeImage } from "@/lib/gemini";
+import { detectAndTriggerCrisis } from "@/lib/agents/crisis-detector";
 import MapView from "@/components/map/MapView";
 import { 
   Camera, 
@@ -28,13 +30,7 @@ import {
 
 // Image analysis (in report page):
 const analyzeImage = async (imageBase64: string) => {
-  const res = await fetch('/api/gemini/analyze-image', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ imageBase64 })
-  });
-  if (!res.ok) throw new Error('Analysis failed');
-  return res.json();
+  return await geminiAnalyzeImage(imageBase64);
 };
 
 export default function ReportPage() {
@@ -113,10 +109,10 @@ export default function ReportPage() {
         setLocation({ lat, lng });
         setLocationLoading(false);
         
-        // Reverse geocode with Nominatim proxy:
+        // Reverse geocode directly with Nominatim:
         try {
           const res = await fetch(
-            `/api/geocode?lat=${lat}&lng=${lng}`
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`
           );
           const data = await res.json();
           setAddress(data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
@@ -126,32 +122,34 @@ export default function ReportPage() {
         }
       },
       (error) => {
+        console.error('Location error:', error);
+        // fallback to default coords: Mumbai 19.0760, 72.8777
+        setLocation({ lat: 19.0760, lng: 72.8777 });
+        setAddress("Mumbai, Maharashtra, India");
+        setStreetName("Mumbai Central");
         setLocationLoading(false);
         switch(error.code) {
           case error.PERMISSION_DENIED:
-            setLocationError('Location permission denied. Please allow location access.');
-            break;
-          case error.POSITION_UNAVAILABLE:
-            setLocationError('Location unavailable. Try again.');
+            setLocationError('Location permission denied. Defaulting to Mumbai.');
             break;
           default:
-            setLocationError('Could not get location. Try again.');
+            setLocationError('Could not get location. Defaulting to Mumbai.');
         }
       },
       { 
-        enableHighAccuracy: true,  // GPS not WiFi
+        enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 0              // always fresh, never cached
+        maximumAge: 0
       }
     );
   };
 
   const handleLocationChange = async (newLoc: { lat: number; lng: number }) => {
     setLocation(newLoc);
-    // Re-reverse geocode new position via proxy:
+    // Re-reverse geocode new position directly:
     try {
       const res = await fetch(
-        `/api/geocode?lat=${newLoc.lat}&lng=${newLoc.lng}`
+        `https://nominatim.openstreetmap.org/reverse?lat=${newLoc.lat}&lon=${newLoc.lng}&format=json&accept-language=en`
       );
       const data = await res.json();
       setAddress(data.display_name || `${newLoc.lat.toFixed(4)}, ${newLoc.lng.toFixed(4)}`);
@@ -161,14 +159,14 @@ export default function ReportPage() {
     }
   };
 
-  const toggleVoice = () => {
+  const toggleVoice = async () => {
     const SpeechRecognition = 
       (window as any).SpeechRecognition || 
       (window as any).webkitSpeechRecognition
 
     if (!SpeechRecognition) {
-      alert('Use Chrome browser for voice input')
-      return
+      alert("Voice input not supported in this browser. Use Chrome.");
+      return;
     }
 
     if (isListening) {
@@ -176,6 +174,16 @@ export default function ReportPage() {
       setIsListening(false)
       setInterimText('')
       return
+    }
+
+    // Check mic permission via getUserMedia
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      console.error('Mic access denied:', err);
+      alert("Please allow microphone access in browser settings");
+      return;
     }
 
     const recognition = new SpeechRecognition()
@@ -310,7 +318,7 @@ export default function ReportPage() {
     }
     try {
       const response = await fetch(
-        `/api/geocode?q=${encodeURIComponent(value)}`
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&limit=5&addressdetails=1&accept-language=en`
       );
       const data = await response.json();
       setAddressResults(data || []);
@@ -448,6 +456,17 @@ export default function ReportPage() {
       });
 
       const docRef = await addDoc(collection(db, 'issues'), issueData);
+      const newIssueWithId = { id: docRef.id, ...issueData };
+
+      // Update temporal street memory using the AI agent client-side
+      updateStreetMemory(streetName || location.lat.toFixed(3), newIssueWithId).catch(err => 
+        console.error("Client-side updateStreetMemory failed:", err)
+      );
+
+      // Trigger hyperlocal crisis checking client-side
+      detectAndTriggerCrisis(newIssueWithId).catch(err =>
+        console.error("Client-side detectAndTriggerCrisis failed:", err)
+      );
 
       // Add points if not anonymous
       if (!isAnonymous) {
@@ -459,26 +478,6 @@ export default function ReportPage() {
             issueId: docRef.id,
             timestamp: new Date().toISOString()
           })
-        });
-      }
-
-      // Update street memory
-      const streetRef = doc(db, 'streets', streetName || location.lat.toFixed(3));
-      const streetSnap = await getDoc(streetRef);
-      if (streetSnap.exists()) {
-        await updateDoc(streetRef, {
-          totalIssues: increment(1),
-          lastIssue: new Date().toISOString(),
-          categories: arrayUnion(dnaData?.category || category || 'OTHER')
-        });
-      } else {
-        await setDoc(streetRef, {
-          streetName: streetName || address,
-          totalIssues: 1,
-          resolved: 0,
-          categories: [dnaData?.category || category || 'OTHER'],
-          lastIssue: new Date().toISOString(),
-          healthScore: 70
         });
       }
 

@@ -10,7 +10,7 @@ CivicPulse is an advanced, decentralized hyperlocal civic ledger and municipal e
 ---
 
 ## 🎯 Live Demo
-**URL**: [your-cloud-run-url]
+**URL**: [https://community-hero-66083.web.app](https://community-hero-66083.web.app)
 
 | Role | Phone | OTP |
 |------|-------|-----|
