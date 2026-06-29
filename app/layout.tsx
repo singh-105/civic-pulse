@@ -14,7 +14,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "CivicPulse | Hyperlocal Problem Solver & Mission Control",
+  title: "CivicPulse | Hyperlocal Civic Ledger & AI Advocacy Engine",
   description: "A premium glassmorphic civic tech platform empowering citizens and moderators to report, escalate, and predict municipal issues using Gemini AI.",
 };
 
