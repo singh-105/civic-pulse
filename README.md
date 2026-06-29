@@ -2,10 +2,10 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org)
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange)](https://firebase.google.com)
-[![Groq](https://img.shields.io/badge/AI-Groq%20LLaMA-purple)](https://groq.com)
+[![Gemini](https://img.shields.io/badge/AI-Google%20Gemini-blue)](https://ai.google.dev)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-CivicPulse is an advanced, decentralized hyperlocal civic ledger and municipal escalation engine designed to empower citizens and streamline ward management. Built for the **Google Hackathon**, the platform leverages the **Google Developer Ecosystem**—specifically **Google Maps Platform** and **Firebase**—integrated with high-performance **Groq LLaMA LLMs** as the primary AI engine to construct a crowd-verified ledger of municipal infrastructure failures and automate civil advocacy.
+CivicPulse is an advanced, decentralized hyperlocal civic ledger and municipal escalation engine designed to empower citizens and streamline ward management. Built for the **Google Hackathon**, the platform leverages the **Google Developer Ecosystem**—specifically **Google Gemini AI**, **Google Maps Platform**, and **Firebase**—to construct a crowd-verified ledger of municipal infrastructure failures and automate civil advocacy.
 
 ---
 
@@ -59,18 +59,18 @@ flowchart TD
 ## 🚀 Deep-Dive Features
 
 ### 1. Citizen Portal
-- **Multimodal AI Diagnostics (Groq LLaMA 4 Vision)**: Uploading a picture instantly triggers Groq's Vision engine to analyze the environment. The AI auto-fills:
+- **Multimodal AI Diagnostics (Gemini 1.5 Flash)**: Uploading a picture instantly triggers Gemini Vision to analyze the environment. The AI auto-fills:
   - **Primary Civic Category**: `POTHOLE`, `GARBAGE`, `WATERLOGGING`, `STREETLIGHT`, `SEWAGE`, `CONSTRUCTION`, `TREE`, or `OTHER`.
   - **Diagnostic DNA**: Generates an environmental root-cause hypothesis and estimates the affected population.
   - **Severity Score**: Evaluated on a 1-10 scale to prioritize municipal work order queues.
 - **Dynamic 50-Meter Duplicate Filter**: To prevent reporting spam, the platform runs a Haversine distance check against the local Firestore collection. If a similar issue is open nearby, the citizen is redirected to upvote and verify the existing report (earning +5 points) instead of creating a duplicate entry.
-- **AI Negotiation Agent & Letter Composer**: If an approved issue languishes unresolved, the citizen has access to the **AI Negotiation Console**. Powered by **Groq LLaMA 3.3**, it ingests the entire ledger record (telemetry, upvotes, severity, history) and crafts a professional, formal complaint letter to municipal zonal heads demanding action.
+- **AI Negotiation Agent & Letter Composer**: If an approved issue languishes unresolved, the citizen has access to the **AI Negotiation Console**. Powered by **Gemini 1.5 Pro**, it ingests the entire ledger record (telemetry, upvotes, severity, history) and crafts a professional, formal complaint letter to municipal zonal heads demanding action.
 - **Gamified Reputational Trust Index**: Civic actions update citizen reputation records in Firestore. Submitting valid reports awards +10 points, upvoting/verifying awards +5 points, and resolved issues yield +25 points, unlocking badges like *Civic Pioneer*.
 
 > **[APPLY SCREENSHOT: Dashboard page displaying current user points, active issues list, and ward health map]**
 > `![Citizen Dashboard](public/screenshots/citizen_dashboard.png)`
 
-> **[APPLY SCREENSHOT: Issue reporting page showing snapped photo, address resolved via Google Geocoding, and Groq AI auto-populated severity and DNA details]**
+> **[APPLY SCREENSHOT: Issue reporting page showing snapped photo, address resolved via Google Geocoding, and Gemini AI auto-populated severity and DNA details]**
 > `![Filing Issue Details](public/screenshots/issue_filing.png)`
 
 > **[APPLY SCREENSHOT: Issue detail page displaying upvote button, WhatsApp-style timeline log, and the AI Negotiation console with the copyable escalation letter]**
@@ -89,13 +89,13 @@ flowchart TD
 
 ---
 
-## 🛠️ Technology Stack & AI Integration
+## 🛠️ Google Tech Stack Integration
 
-CivicPulse utilizes a modern serverless stack integrated with Groq Cloud AI and Google Developer Ecosystem tools:
+CivicPulse utilizes Google's developer ecosystem to implement a highly performant and secure serverless framework:
 
-### ⚡ Groq Cloud AI (Primary AI Engine)
-- **Multimodal Vision Diagnostics**: Powered by **LLaMA 4 Scout (17B)** to analyze citizen photo uploads (encoded as Base64) and classify municipal issues with high confidence and speed.
-- **Context-Aware Synthesis**: Powered by **LLaMA 3.3 (70B)** to synthesize formal, professional complaint letters by ingesting ledger telemetry and upvote history.
+### ⚡ Google Gemini API (Primary AI Engine)
+- **Multimodal Vision Diagnostics**: Powered by **Gemini 1.5 Flash** to analyze citizen photo uploads (encoded as Base64) and classify municipal issues with high confidence and speed.
+- **Context-Aware Synthesis**: Powered by **Gemini 1.5 Pro** to synthesize formal, professional complaint letters by ingesting ledger telemetry and upvote history.
 
 ### 🗺️ Google Maps Platform
 - **Maps SDK for JavaScript**: Powers interactive vector maps, spatial clustering of incidents, and live ward overlays.
@@ -113,8 +113,8 @@ CivicPulse utilizes a modern serverless stack integrated with Groq Cloud AI and 
 Create a `.env.local` file in the root directory and configure the following environment variables:
 
 ```env
-# AI Model Configuration (Groq API)
-GROQ_API_KEY=your_groq_api_key_here
+# Google Gemini API
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Firebase Configuration
 NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key_here
