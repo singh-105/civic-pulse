@@ -1,11 +1,11 @@
-# ⚡ CivicPulse — Hyperlocal municipal redressal ledger & AI negotiation agent
+# ⚡ CivicPulse — Municipal redressal ledger & AI negotiation agent
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org)
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange)](https://firebase.google.com)
 [![Gemini](https://img.shields.io/badge/AI-Google%20Gemini-blue)](https://ai.google.dev)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-CivicPulse is an advanced, decentralized hyperlocal civic ledger and municipal escalation engine designed to empower citizens and streamline ward management. Built for the **Google Hackathon**, the platform leverages the **Google Developer Ecosystem**—specifically **Google Gemini AI**, **Google Maps Platform**, and **Firebase**—to construct a crowd-verified ledger of municipal infrastructure failures and automate civil advocacy.
+CivicPulse is an advanced, decentralized civic ledger and municipal escalation engine designed to empower citizens and streamline ward management. Built for the **Google Hackathon**, the platform leverages the **Google Developer Ecosystem**—specifically **Google Gemini AI**, **Google Maps Platform**, and **Firebase**—to construct a crowd-verified ledger of municipal infrastructure failures and automate civil advocacy.
 
 ---
 

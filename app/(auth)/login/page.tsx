@@ -162,7 +162,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-white">
             <span className="text-cyan-400">Civic</span>Pulse
           </h1>
-          <p className="text-slate-400 mt-2">Hyperlocal Civic Ledger & AI Advocacy Engine</p>
+          <p className="text-slate-400 mt-2">Civic Redressal Ledger & AI Advocacy Engine</p>
         </div>
 
         {/* Role Selection - Large buttons, very clear */}

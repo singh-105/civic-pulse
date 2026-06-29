@@ -527,7 +527,7 @@ export default function ReportPage() {
       {/* Title */}
       <div>
         <p className="text-xs uppercase tracking-widest text-slate-500">Triage Center</p>
-        <h2 className="text-2xl font-bold tracking-wide font-heading text-white mt-1">REPORT HYPERLOCAL FAULT</h2>
+        <h2 className="text-2xl font-bold tracking-wide font-heading text-white mt-1">REPORT MUNICIPAL FAULT</h2>
       </div>
 
       {error && (
@@ -694,7 +694,7 @@ export default function ReportPage() {
                 <div className="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/5 text-xs text-slate-300">
                   <MapPin className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <span className="block font-bold text-white truncate capitalize">{streetName || "Hyperlocal Street"}</span>
+                    <span className="block font-bold text-white truncate capitalize">{streetName || "Municipal Street"}</span>
                     <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">{address || "Fetching address coordinates..."}</p>
                   </div>
                 </div>
