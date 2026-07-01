@@ -67,14 +67,13 @@ flowchart TD
 - **AI Negotiation Agent & Letter Composer**: If an approved issue languishes unresolved, the citizen has access to the **AI Negotiation Console**. Powered by **Gemini 1.5 Pro**, it ingests the entire ledger record (telemetry, upvotes, severity, history) and crafts a professional, formal complaint letter to municipal zonal heads demanding action.
 - **Gamified Reputational Trust Index**: Civic actions update citizen reputation records in Firestore. Submitting valid reports awards +10 points, upvoting/verifying awards +5 points, and resolved issues yield +25 points, unlocking badges like *Civic Pioneer*.
 
-> **[APPLY SCREENSHOT: Dashboard page displaying current user points, active issues list, and ward health map]**
-> `![Citizen Dashboard](public/screenshots/citizen_dashboard.png)`
+<img width="1913" height="1043" alt="Screenshot 2026-06-30 164347" src="https://github.com/user-attachments/assets/3b175e6b-c920-4b72-be4a-5b4c5d62d12f" />
 
-> **[APPLY SCREENSHOT: Issue reporting page showing snapped photo, address resolved via Google Geocoding, and Gemini AI auto-populated severity and DNA details]**
-> `![Filing Issue Details](public/screenshots/issue_filing.png)`
 
-> **[APPLY SCREENSHOT: Issue detail page displaying upvote button, WhatsApp-style timeline log, and the AI Negotiation console with the copyable escalation letter]**
-> `![Citizen AI Escalation Modal](public/screenshots/citizen_escalation.png)`
+
+<img width="1918" height="1012" alt="Screenshot 2026-06-30 164451" src="https://github.com/user-attachments/assets/7f79edc9-b17a-4624-aa86-56906d84cc55" />
+
+
 
 ---
 
@@ -84,8 +83,7 @@ flowchart TD
 - **Spatial Ward Grid**: Uses **Google Maps** to overlay active incidents, allowing moderators to identify zonal clusters (e.g., matching sewer leaks to water main breaks).
 - **Shadow Government Performance Grid**: A dashboard grading municipal departments (PWD Roads, Water Board, Sanitation, Municipal Lighting) by calculating their actual resolution rates directly from the community ledger.
 
-> **[APPLY SCREENSHOT: Moderator War Room dashboard showing pending queues, spatial grid map, and department performance indicators]**
-> `![Moderator War Room](public/screenshots/moderator_warroom.png)`
+<img width="1913" height="1041" alt="Screenshot 2026-06-30 182017" src="https://github.com/user-attachments/assets/cd0ef081-5207-4c4d-b6e4-cbaa67ca8e7b" />
 
 ---
 
