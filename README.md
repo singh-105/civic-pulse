@@ -1,19 +1,17 @@
 # ⚡ CivicPulse — Municipal redressal ledger & AI negotiation agent
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org)
-[![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange)](https://firebase.google.com)
-[![Gemini](https://img.shields.io/badge/AI-Google%20Gemini-blue)](https://ai.google.dev)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org) [![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange)](https://firebase.google.com) [![Gemini](https://img.shields.io/badge/AI-Google%20Gemini-blue)](https://ai.google.dev) [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-CivicPulse is an advanced, decentralized civic ledger and municipal escalation engine designed to empower citizens and streamline ward management. Built for the **Google Hackathon**, the platform leverages the **Google Developer Ecosystem**—specifically **Google Gemini AI**, **Google Maps Platform**, and **Firebase**—to construct a crowd-verified ledger of municipal infrastructure failures and automate civil advocacy.
+CivicPulse is an advanced, decentralized civic ledger and municipal escalation engine designed to empower citizens and streamline ward management. Built for the **Google Vibe2Ship Hackathon**, the platform leverages the **Google Developer Ecosystem**—specifically **Google Gemini AI**, **Google Maps Platform**, and **Firebase**—to construct a crowd-verified ledger of municipal infrastructure failures and automate civil advocacy.
 
 ---
 
 ## 🎯 Live Demo
+
 **URL**: [https://community-hero-66083.web.app](https://community-hero-66083.web.app)
 
 | Role | Phone | OTP |
-|------|-------|-----|
+|---|---|---|
 | 👤 Citizen | 9999999999 | 123456 |
 | 🛡️ Moderator | 8888888888 | 123456 |
 
@@ -25,33 +23,30 @@ Or use **Google Sign-In** with any Gmail.
 
 ```mermaid
 flowchart TD
-    subgraph Citizen Flow
-        A[Citizen snaps photo] --> B[Gemini 1.5 Flash Vision Diagnostic]
-        B -->|AI parses category, severity, urgency| C[Report Wizard Form]
-        C -->|Live GPS Telemetry| D[Google Maps Geocoding API]
-        D -->|Resolve address & ward| E[Dynamic Duplicate Detector]
-        E -->|Issue within 50m threshold?| F{Duplicate Alert}
-        F -->|Yes| G[Redirect to Upvote & Verify +5 pts]
-        F -->|No| H[Write Report to Ledger +10 pts]
-    end
-
-    subgraph Firebase Cloud Ledger
-        H --> I[(Cloud Firestore Database)]
-        I -->|Real-time sync via onSnapshot| J[Live Zonal Map & Ledger]
-    end
-
-    subgraph Moderator War Room
-        J --> K[Zonal War Room Panel]
-        K -->|Approve & Verify| L[Update Status & Award +5 pts to Citizen]
-        K -->|Mark Invalid| M[Reject & Archive Report]
-    end
-
-    subgraph Escalation & AI Negotiation
-        L --> N[48-Hour Resolution Window]
-        N -->|Still unresolved| O[AI Negotiation Console]
-        O -->|Trigger Citizen Escalation| P[Gemini 1.5 Pro Letter Generator]
-        P -->|Draft official municipal complaint| Q[Resend Email Dispatch]
-    end
+ subgraph Citizen Flow
+ A[Citizen snaps photo] --> B[Gemini 1.5 Flash Vision Diagnostic]
+ B -->|AI parses category, severity, urgency| C[Report Wizard Form]
+ C -->|Live GPS Telemetry| D[Google Maps Geocoding API]
+ D -->|Resolve address & ward| E[Dynamic Duplicate Detector]
+ E -->|Issue within 50m threshold?| F{Duplicate Alert}
+ F -->|Yes| G[Redirect to Upvote & Verify +5 pts]
+ F -->|No| H[Write Report to Ledger +10 pts]
+ end
+ subgraph Firebase Cloud Ledger
+ H --> I[(Cloud Firestore Database)]
+ I -->|Real-time sync via onSnapshot| J[Live Zonal Map & Ledger]
+ end
+ subgraph Moderator War Room
+ J --> K[Zonal War Room Panel]
+ K -->|Approve & Verify| L[Update Status & Award +5 pts to Citizen]
+ K -->|Mark Invalid| M[Reject & Archive Report]
+ end
+ subgraph Escalation & AI Negotiation
+ L --> N[48-Hour Resolution Window]
+ N -->|Still unresolved| O[AI Negotiation Console]
+ O -->|Trigger Citizen Escalation| P[Gemini 1.5 Pro Letter Generator]
+ P -->|Draft official municipal complaint| Q[Resend Email Dispatch]
+ end
 ```
 
 ---
@@ -59,31 +54,28 @@ flowchart TD
 ## 🚀 Deep-Dive Features
 
 ### 1. Citizen Portal
+
 - **Multimodal AI Diagnostics (Gemini 1.5 Flash)**: Uploading a picture instantly triggers Gemini Vision to analyze the environment. The AI auto-fills:
-  - **Primary Civic Category**: `POTHOLE`, `GARBAGE`, `WATERLOGGING`, `STREETLIGHT`, `SEWAGE`, `CONSTRUCTION`, `TREE`, or `OTHER`.
-  - **Diagnostic DNA**: Generates an environmental root-cause hypothesis and estimates the affected population.
-  - **Severity Score**: Evaluated on a 1-10 scale to prioritize municipal work order queues.
+ - **Primary Civic Category**: `POTHOLE`, `GARBAGE`, `WATERLOGGING`, `STREETLIGHT`, `SEWAGE`, `CONSTRUCTION`, `TREE`, or `OTHER`.
+ - **Diagnostic DNA**: Generates an environmental root-cause hypothesis and estimates the affected population.
+ - **Severity Score**: Evaluated on a 1-10 scale to prioritize municipal work order queues.
 - **Dynamic 50-Meter Duplicate Filter**: To prevent reporting spam, the platform runs a Haversine distance check against the local Firestore collection. If a similar issue is open nearby, the citizen is redirected to upvote and verify the existing report (earning +5 points) instead of creating a duplicate entry.
 - **AI Negotiation Agent & Letter Composer**: If an approved issue languishes unresolved, the citizen has access to the **AI Negotiation Console**. Powered by **Gemini 1.5 Pro**, it ingests the entire ledger record (telemetry, upvotes, severity, history) and crafts a professional, formal complaint letter to municipal zonal heads demanding action.
 - **Gamified Reputational Trust Index**: Civic actions update citizen reputation records in Firestore. Submitting valid reports awards +10 points, upvoting/verifying awards +5 points, and resolved issues yield +25 points, unlocking badges like *Civic Pioneer*.
 
-<img width="1913" height="1043" alt="Screenshot 2026-06-30 164347" src="https://github.com/user-attachments/assets/3b175e6b-c920-4b72-be4a-5b4c5d62d12f" />
-
-
-
-<img width="1918" height="1012" alt="Screenshot 2026-06-30 164451" src="https://github.com/user-attachments/assets/7f79edc9-b17a-4624-aa86-56906d84cc55" />
-
-
+![Screenshot 2026-06-30 164347](https://github.com/user-attachments/assets/3b175e6b-c920-4b72-be4a-5b4c5d62d12f)
+![Screenshot 2026-06-30 164451](https://github.com/user-attachments/assets/7f79edc9-b17a-4624-aa86-56906d84cc55)
 
 ---
 
 ### 2. Moderator War Room
+
 - **Live Zonal Control Deck**: Ward moderators view live statistics parsed directly from Firestore, including pending approvals, active incidents, and resolutions completed today.
 - **Real-Time Approval Queue**: Issues flow into the moderator's panel in real-time using Firestore `onSnapshot` subscriptions. Moderators can immediately `Approve` (which awards points to the reporter) or `Reject` reports.
 - **Spatial Ward Grid**: Uses **Google Maps** to overlay active incidents, allowing moderators to identify zonal clusters (e.g., matching sewer leaks to water main breaks).
 - **Shadow Government Performance Grid**: A dashboard grading municipal departments (PWD Roads, Water Board, Sanitation, Municipal Lighting) by calculating their actual resolution rates directly from the community ledger.
 
-<img width="1913" height="1041" alt="Screenshot 2026-06-30 182017" src="https://github.com/user-attachments/assets/cd0ef081-5207-4c4d-b6e4-cbaa67ca8e7b" />
+![Screenshot 2026-06-30 182017](https://github.com/user-attachments/assets/cd0ef081-5207-4c4d-b6e4-cbaa67ca8e7b)
 
 ---
 
@@ -92,14 +84,17 @@ flowchart TD
 CivicPulse utilizes Google's developer ecosystem to implement a highly performant and secure serverless framework:
 
 ### ⚡ Google Gemini API (Primary AI Engine)
+
 - **Multimodal Vision Diagnostics**: Powered by **Gemini 1.5 Flash** to analyze citizen photo uploads (encoded as Base64) and classify municipal issues with high confidence and speed.
 - **Context-Aware Synthesis**: Powered by **Gemini 1.5 Pro** to synthesize formal, professional complaint letters by ingesting ledger telemetry and upvote history.
 
 ### 🗺️ Google Maps Platform
+
 - **Maps SDK for JavaScript**: Powers interactive vector maps, spatial clustering of incidents, and live ward overlays.
 - **Geocoding API**: Reverse-geocodes raw GPS coordinates captured by citizens into human-readable street addresses and ward boundaries.
 
 ### 🔥 Firebase & Google Cloud
+
 - **Firebase Authentication**: Implements secure multi-factor Google Sign-In and Phone Authentication with invisible reCAPTCHA.
 - **Cloud Firestore**: Real-time serverless NoSQL database that synchronizes the active municipal ledger, user scores, and stats instantly across all clients.
 
@@ -108,6 +103,7 @@ CivicPulse utilizes Google's developer ecosystem to implement a highly performan
 ## ⚙️ Configuration & Setup
 
 ### Environment Configuration
+
 Create a `.env.local` file in the root directory and configure the following environment variables:
 
 ```env
@@ -155,19 +151,29 @@ NODE_ENV=development
 ### Installation & Run
 
 1. **Clone the repository and install dependencies:**
-   ```bash
-   npm install
-   ```
-
+```bash
+npm install
+```
 2. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-
-3. **Open the application:**
-   Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
+```bash
+npm run dev
+```
+3. **Open the application:** Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
 ## 🛡️ License
+
 Licensed under the MIT License.
+
+---
+
+## 👨‍💻 About the Developer
+
+Built by **Harsh M Singh** — B.Tech CSE (Data Science), Lokmanya Tilak College of Engineering, Mumbai.
+
+- 🔗 GitHub: [github.com/singh-105](https://github.com/singh-105)
+- 💼 Currently building AI systems as an intern at Deep Cytes
+- 🏆 Built for the **Google Vibe2Ship Hackathon**
+
+Feel free to connect, star the repo, or open an issue if you'd like to contribute!
