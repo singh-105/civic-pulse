@@ -1,11 +1,11 @@
-import Groq from "groq-sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-function getGroqClient() {
-  const key = process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY || "";
+function getGeminiClient() {
+  const key = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
   if (!key) {
-    throw new Error("Groq API key not set");
+    throw new Error("Gemini API key not set");
   }
-  return new Groq({ apiKey: key, dangerouslyAllowBrowser: true });
+  return new GoogleGenerativeAI(key);
 }
 
 interface AnalysisResult {
@@ -22,7 +22,7 @@ interface AnalysisResult {
 }
 
 /**
- * Analyzes a base64 encoded image using Groq Llama-4 vision
+ * Analyzes a base64 encoded image using Gemini 1.5 Flash
  */
 export async function analyzeImage(base64Image: string, customPrompt?: string): Promise<AnalysisResult> {
   // Direct client-side and server-side analysis
@@ -56,30 +56,26 @@ Be accurate. Base category ONLY on what you visually see in image.
 Do NOT default to pothole. Look at actual image content.`;
 
   try {
-    const groq = getGroqClient();
+    const genAI = getGeminiClient();
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
     const rawData = base64Image.replace(/^data:image\/\w+;base64,/, '');
     const mimeMatch = base64Image.match(/^data:([A-Za-z-+\/]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
 
-    const response = await groq.chat.completions.create({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: imageAnalysisPrompt },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:${mimeType};base64,${rawData}`
-              }
-            }
-          ]
-        }
-      ]
-    });
+    const imagePart = {
+      inlineData: {
+        data: rawData,
+        mimeType: mimeType
+      }
+    };
 
-    const text = response.choices[0].message?.content || '';
+    const response = await model.generateContent([
+      imageAnalysisPrompt,
+      imagePart
+    ]);
+
+    const text = response.response.text() || '';
 
     // Strip any markdown if present
     const clean = text.replace(/```json|```/g, '').trim();
@@ -91,10 +87,10 @@ Do NOT default to pothole. Look at actual image content.`;
       if (jsonStart !== -1 && jsonEnd !== -1) {
         return JSON.parse(clean.substring(jsonStart, jsonEnd + 1));
       }
-      throw new Error('Invalid JSON from Groq');
+      throw new Error('Invalid JSON from Gemini');
     }
   } catch (error) {
-    console.error("Groq Vision analysis failed:", error);
+    console.error("Gemini Vision analysis failed:", error);
     // Fallback Mock Data if it fails
     return {
       category: "OTHER",
@@ -111,27 +107,21 @@ Do NOT default to pothole. Look at actual image content.`;
 }
 
 /**
- * Generates text completions using Groq Llama 3.3
+ * Generates text completions using Gemini 1.5 Flash
  */
 export async function generateText(prompt: string, systemInstruction?: string): Promise<string> {
   // Direct client-side and server-side text generation
   try {
-    const groq = getGroqClient();
-    const messages: any[] = [];
-    if (systemInstruction) {
-      messages.push({ role: 'system', content: systemInstruction });
-    }
-    messages.push({ role: 'user', content: prompt });
-
-    const response = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      messages,
-      max_tokens: 1000
+    const genAI = getGeminiClient();
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: systemInstruction 
     });
 
-    return (response.choices[0].message?.content || '').trim();
+    const response = await model.generateContent(prompt);
+    return (response.response.text() || '').trim();
   } catch (error) {
-    console.error("Groq text generation failed:", error);
+    console.error("Gemini text generation failed:", error);
     return '{}';
   }
 }

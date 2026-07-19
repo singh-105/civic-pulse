@@ -1,58 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
-import Groq from "groq-sdk";
-
-const groq = new Groq({ apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY || '' });
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: NextRequest) {
   try {
     const { prompt, imageBase64, systemInstruction } = await req.json();
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
     
-    if (!process.env.NEXT_PUBLIC_GROQ_API_KEY && !process.env.GROQ_API_KEY) {
-      console.error("Groq API key environment variable is not defined");
+    if (!apiKey) {
+      console.error("Gemini API key environment variable is not defined");
       return NextResponse.json({ text: '{}', isFallback: true });
     }
 
-    const messages: any[] = [];
-    if (systemInstruction) {
-      messages.push({ role: 'system', content: systemInstruction });
-    }
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: systemInstruction 
+    });
 
+    let response;
     if (imageBase64) {
       const rawData = imageBase64.includes(",") ? imageBase64.split(",")[1] : imageBase64;
       const mimeMatch = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,/);
       const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
 
-      messages.push({
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt },
-          {
-            type: 'image_url',
-            image_url: {
-              url: `data:${mimeType};base64,${rawData}`
-            }
+      response = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: rawData,
+            mimeType: mimeType
           }
-        ]
-      });
+        }
+      ]);
     } else {
-      messages.push({ role: 'user', content: prompt });
+      response = await model.generateContent(prompt);
     }
 
-    const model = imageBase64 
-      ? 'meta-llama/llama-4-scout-17b-16e-instruct'
-      : 'llama-3.3-70b-versatile';
-
-    const response = await groq.chat.completions.create({
-      model,
-      messages,
-      max_tokens: 1000
-    });
-
-    const responseText = response.choices[0].message?.content || '';
+    const responseText = response.response.text() || '';
     return NextResponse.json({ text: responseText });
 
   } catch (error: any) {
-    console.error("Groq proxy route error:", error?.message || error);
+    console.error("Gemini proxy route error:", error?.message || error);
     return NextResponse.json({ text: '{}', isFallback: true });
   }
 }

@@ -4,6 +4,7 @@ import { fetchWeatherForecast } from "@/lib/weather";
 import { searchExa } from "@/lib/exa";
 import { fetchNews } from "@/lib/newsdata";
 import { generateText } from "@/lib/gemini";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export interface ZonePrediction {
   zone: string;
@@ -17,24 +18,58 @@ export interface DecayPredictionResult {
   predictions: ZonePrediction[];
 }
 
-const parseGeminiJSON = (text: string) => {
+const generatePrediction = async (weatherData: any, issuesData: any, newsData: any) => {
   try {
-    // Remove markdown fences
-    const clean = text
-      .replace(/```json/g, '')
-      .replace(/```/g, '')
-      .trim()
-    return JSON.parse(clean)
-  } catch {
-    // Return safe default if parse fails
+    const prompt = `You are a civic infrastructure analyst for Indian cities.
+    
+Weather forecast: ${JSON.stringify(weatherData)}
+Recent civic issues (last 30 days): ${JSON.stringify(issuesData)}
+Local news: ${JSON.stringify(newsData)}
+
+Analyze infrastructure risk for next 7 days. Return ONLY valid JSON, no markdown, no backticks:
+{
+  "predictions": [
+    {"category": "pothole", "risk": "high", "reason": "one sentence reason"},
+    {"category": "waterlogging", "risk": "critical", "reason": "one sentence reason"},
+    {"category": "garbage", "risk": "medium", "reason": "one sentence reason"},
+    {"category": "streetlight", "risk": "low", "reason": "one sentence reason"},
+    {"category": "sewage", "risk": "high", "reason": "one sentence reason"}
+  ],
+  "riskLevel": "HIGH",
+  "summary": "2 sentence summary of overall ward risk"
+}`;
+
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const response = await model.generateContent(prompt);
+    const text = response.response.text() || '';
+    console.log('Gemini raw response:', text);
+    
+    const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    return parsed;
+
+  } catch (err) {
+    console.error('Gemini prediction failed:', err);
+    const month = new Date().getMonth();
+    const isMonsoon = month >= 5 && month <= 9;
     return {
-      predictions: [],
-      riskLevel: 'LOW',
-      zones: [],
-      summary: 'Analysis unavailable'
-    }
+      predictions: [
+        { category: 'pothole', risk: isMonsoon ? 'critical' : 'medium', reason: isMonsoon ? 'Monsoon season worsens road surfaces significantly' : 'Normal wear and tear expected' },
+        { category: 'waterlogging', risk: isMonsoon ? 'critical' : 'low', reason: isMonsoon ? 'Peak monsoon drain overflow risk' : 'Dry season minimal risk' },
+        { category: 'garbage', risk: 'medium', reason: 'Collection backlogs common in dense urban areas' },
+        { category: 'streetlight', risk: 'low', reason: 'No significant weather impact expected' },
+        { category: 'sewage', risk: isMonsoon ? 'high' : 'low', reason: isMonsoon ? 'Rain overload on aging sewage pipes' : 'Normal flow conditions' }
+      ],
+      riskLevel: isMonsoon ? 'HIGH' : 'MEDIUM',
+      summary: isMonsoon
+        ? 'Monsoon conditions elevate infrastructure risk across Mumbai. Potholes and waterlogging are critical concerns.'
+        : 'Moderate civic infrastructure risk. Regular monitoring recommended for garbage and road conditions.'
+    };
   }
-}
+};
 
 /**
  * Predicts infrastructure decay and hazard risk levels across wards/zones
@@ -76,44 +111,32 @@ export async function generateDecayPredictions(city: string = "Mumbai"): Promise
     const newsData = await fetchNews("road accident pothole infrastructure", city);
     const exaData = await searchExa(`hazardous roads broken streetlights waterlogging in ${city}`, 3);
 
-    // 4. Combine into prompt
+    // 4. Combine into news summary
     const combinedNews = [...newsData, ...exaData]
       .map((item, idx) => `[News ${idx + 1}] Title: ${item.title}. Info: ${item.description || item.snippet || ""}`)
       .join("\n");
 
-    const systemPrompt = `You are the CivicPulse Predictive Decay Model AI. Your job is to analyze active civic reports, weather predictions, and local news to output ward-level risk indicators for infrastructure decay over the next 14 days.`;
-
-    const prompt = `Analyze the infrastructure and public safety risks in ${city} for the next 14 days.
+    const result = await generatePrediction(weatherData, issuesSummary, combinedNews);
     
-    ENVIRONMENTAL PARAMETERS:
-    - 5-Day Weather Forecast: ${JSON.stringify(weatherData)}
-    
-    ACTIVE CIVIC ISSUE STRESSORS (Ward-level accumulated severity weights):
-    ${JSON.stringify(issuesSummary)}
-    
-    RECENT NEWS & SOCIAL INCIDENTS:
-    ${combinedNews}
+    const mappedPredictions: ZonePrediction[] = (result.predictions || []).map((p: any) => {
+      let probability = 0.5;
+      const risk = (p.risk || '').toLowerCase();
+      if (risk === "critical") probability = 0.9;
+      else if (risk === "high") probability = 0.75;
+      else if (risk === "medium") probability = 0.6;
+      else if (risk === "low") probability = 0.3;
 
-    Based on this data, assess risk probability (0.00 to 1.00) of infrastructure decay or public safety incidents per ward and category (pothole, drain, light, water, garbage, construction).
-    You must output a raw JSON object with the following structure. Do not include markdown codeblocks or quotes.
-    {
-      "predictions": [
-        {
-          "zone": "Ward Name (e.g. Ward A, Ward 12, etc.)",
-          "category": "pothole | drain | light | water | garbage | construction",
-          "probability": 0.85,
-          "reasoning": "brief 1-sentence reasoning (e.g., heavy rain and existing clogged drains will trigger flooding)"
-        }
-      ]
-    }`;
-
-    const combinedPrompt = `System instructions: ${systemPrompt}\n\nAnalyze this data:\n${prompt}`;
-    const aiResponse = await generateText(combinedPrompt);
-    const parsed = parseGeminiJSON(aiResponse);
+      return {
+        zone: city || "Mumbai",
+        category: p.category,
+        probability: probability,
+        reasoning: p.reason || p.reasoning || ""
+      };
+    });
 
     return {
       lastUpdated: new Date().toISOString(),
-      predictions: parsed.predictions || [],
+      predictions: mappedPredictions,
     };
   } catch (error) {
     console.error("Decay predictions generation failed:", error);
@@ -122,26 +145,41 @@ export async function generateDecayPredictions(city: string = "Mumbai"): Promise
 }
 
 function getFallbackPredictions(): DecayPredictionResult {
+  const month = new Date().getMonth();
+  const isMonsoon = month >= 5 && month <= 9;
+  
   return {
     lastUpdated: new Date().toISOString(),
     predictions: [
       {
-        zone: "Ward 12",
-        category: "drain",
-        probability: 0.88,
-        reasoning: "Imminent heavy rainfall will overflow active sewer blockages reported here."
-      },
-      {
-        zone: "Ward 8",
+        zone: "Mumbai",
         category: "pothole",
-        probability: 0.75,
-        reasoning: "Erosion from local water pipeline leaks will expand existing road potholes."
+        probability: isMonsoon ? 0.9 : 0.6,
+        reasoning: isMonsoon ? "Monsoon season worsens road surfaces significantly" : "Normal wear and tear expected"
       },
       {
-        zone: "Ward 15",
-        category: "light",
-        probability: 0.62,
-        reasoning: "Recent local news reports multiple accidents near dark junctions on main road."
+        zone: "Mumbai",
+        category: "waterlogging",
+        probability: isMonsoon ? 0.9 : 0.3,
+        reasoning: isMonsoon ? "Peak monsoon drain overflow risk" : "Dry season minimal risk"
+      },
+      {
+        zone: "Mumbai",
+        category: "garbage",
+        probability: 0.6,
+        reasoning: "Collection backlogs common in dense urban areas"
+      },
+      {
+        zone: "Mumbai",
+        category: "streetlight",
+        probability: 0.3,
+        reasoning: "No significant weather impact expected"
+      },
+      {
+        zone: "Mumbai",
+        category: "sewage",
+        probability: isMonsoon ? 0.75 : 0.3,
+        reasoning: isMonsoon ? "Rain overload on aging sewage pipes" : "Normal flow conditions"
       }
     ],
   };

@@ -91,57 +91,67 @@ export default function ReportPage() {
     }
   }, [formStep]);
 
-  const getUserLocation = () => {
-    setLocationLoading(true);
-    setLocationError(null);
-    
+const fetchUserLocation = () => {
+  return new Promise<{ lat: number; lng: number }>((resolve) => {
     if (!navigator.geolocation) {
-      setLocationError('Geolocation not supported');
-      setLocationLoading(false);
+      resolve({ lat: 19.0760, lng: 72.8777 });
       return;
     }
 
+    const timeoutId = setTimeout(() => {
+      resolve({ lat: 19.0760, lng: 72.8777 });
+    }, 8000);
+
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        
-        setLocation({ lat, lng });
-        setLocationLoading(false);
-        
-        // Reverse geocode directly with Nominatim:
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`
-          );
-          const data = await res.json();
-          setAddress(data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-          setStreetName(data.address?.road || data.address?.suburb || '');
-        } catch {
-          setAddress(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-        }
+      (position) => {
+        clearTimeout(timeoutId);
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
       },
       (error) => {
-        console.error('Location error:', error);
-        // fallback to default coords: Mumbai 19.0760, 72.8777
-        setLocation({ lat: 19.0760, lng: 72.8777 });
-        setAddress("Mumbai, Maharashtra, India");
-        setStreetName("Mumbai Central");
-        setLocationLoading(false);
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            setLocationError('Location permission denied. Defaulting to Mumbai.');
-            break;
-          default:
-            setLocationError('Could not get location. Defaulting to Mumbai.');
-        }
+        clearTimeout(timeoutId);
+        console.warn('Geolocation error:', error.message);
+        resolve({ lat: 19.0760, lng: 72.8777 });
       },
-      { 
+      {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+        timeout: 7000,
+        maximumAge: 300000
       }
     );
+  });
+};
+
+  const getUserLocation = async () => {
+    setLocationLoading(true);
+    setLocationError(null);
+    
+    try {
+      const coords = await fetchUserLocation();
+      setLocation(coords);
+      
+      // Reverse geocode directly with Nominatim:
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lng}&format=json&accept-language=en`
+        );
+        const data = await res.json();
+        setAddress(data.display_name || `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`);
+        setStreetName(data.address?.road || data.address?.suburb || '');
+      } catch {
+        setAddress(`${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`);
+      }
+    } catch (error: any) {
+      console.error('Location error:', error);
+      setLocation({ lat: 19.0760, lng: 72.8777 });
+      setAddress("Mumbai, Maharashtra, India");
+      setStreetName("Mumbai Central");
+      setLocationError('Could not get location. Defaulting to Mumbai.');
+    } finally {
+      setLocationLoading(false);
+    }
   };
 
   const handleLocationChange = async (newLoc: { lat: number; lng: number }) => {

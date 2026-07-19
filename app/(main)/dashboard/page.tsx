@@ -148,24 +148,46 @@ export default function DashboardPage() {
     return () => unsubscribe()
   }, [])
 
+const fetchUserLocation = () => {
+  return new Promise<{ lat: number; lng: number }>((resolve) => {
+    if (!navigator.geolocation) {
+      resolve({ lat: 19.0760, lng: 72.8777 });
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      resolve({ lat: 19.0760, lng: 72.8777 });
+    }, 8000);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        clearTimeout(timeoutId);
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        console.warn('Geolocation error:', error.message);
+        resolve({ lat: 19.0760, lng: 72.8777 });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 7000,
+        maximumAge: 300000
+      }
+    );
+  });
+};
+
   // Geolocation trigger
   useEffect(() => {
-    if (typeof window !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserCoords({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
-          });
-        },
-        (err) => {
-          console.warn("Geolocation permission denied. Defaulting to Mumbai center.", err);
-          setUserCoords({ lat: 19.076, lng: 72.8777 });
-        }
-      );
-    } else {
-      setUserCoords({ lat: 19.076, lng: 72.8777 });
-    }
+    const fetchLocation = async () => {
+      const coords = await fetchUserLocation();
+      setUserCoords(coords);
+    };
+    fetchLocation();
   }, []);
 
   // Fetch top users for leaderboard preview

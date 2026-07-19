@@ -1,20 +1,18 @@
-import Groq from 'groq-sdk'
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { NextResponse } from 'next/server'
-
-const groq = new Groq({ apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY })
 
 export async function POST(req: Request) {
   try {
     const { imageBase64 } = await req.json()
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || ""
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
-    const response = await groq.chat.completions.create({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: `You are CivicPulse AI for Indian municipal infrastructure.
+    const rawData = imageBase64.includes(",") ? imageBase64.split(",")[1] : imageBase64;
+    const mimeMatch = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,/);
+    const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+
+    const promptText = `You are CivicPulse AI for Indian municipal infrastructure.
 Analyze this image carefully. Identify the PRIMARY civic issue.
 
 RULES:
@@ -29,23 +27,19 @@ RULES:
 
 Look at image carefully. Do NOT default to POTHOLE.
 Return ONLY valid JSON no markdown no explanation:
-{"category":"GARBAGE","subcategory":"Illegal Dumping","severity":7,"rootCause":"Inadequate waste collection in locality","affectedPopulation":"200 residents","urgency":"High","recommendedFix":"Emergency waste removal and CCTV installation"}`
-          },
-          {
-            type: 'image_url',
-            image_url: {
-              url: imageBase64.startsWith('data:') 
-                ? imageBase64 
-                : `data:image/jpeg;base64,${imageBase64}`
-            }
-          }
-        ]
-      }],
-      max_tokens: 500,
-      temperature: 0.1
-    })
+{"category":"GARBAGE","subcategory":"Illegal Dumping","severity":7,"rootCause":"Inadequate waste collection in locality","affectedPopulation":"200 residents","urgency":"High","recommendedFix":"Emergency waste removal and CCTV installation"}`;
 
-    const text = response.choices[0].message.content || '{}'
+    const response = await model.generateContent([
+      promptText,
+      {
+        inlineData: {
+          data: rawData,
+          mimeType: mimeType
+        }
+      }
+    ]);
+
+    const text = response.response.text() || '{}'
     const clean = text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim()
     
     try {
@@ -58,7 +52,7 @@ Return ONLY valid JSON no markdown no explanation:
     }
 
   } catch (error: any) {
-    console.error('Groq vision error:', error.message)
+    console.error('Gemini vision error:', error.message || error)
     return NextResponse.json({
       category: 'OTHER',
       subcategory: 'Unclassified',
