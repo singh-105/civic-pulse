@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useGamification } from "@/hooks/useGamification";
 import { Issue, TimelineItem, NegotiationLogItem } from "@/types/issue";
+import { callGemini } from "@/lib/gemini";
 import { 
   ArrowLeft, 
   ThumbsUp, 
@@ -93,32 +94,10 @@ Community upvotes: ${issueData.upvotes || 0}
 Write a professional, firm, 3-paragraph complaint letter demanding resolution within 48 hours.
 Address it to the Municipal Commissioner. Include issue reference ID: ${issueData.id}`;
 
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_GROQ_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.4,
-          max_tokens: 1024
-        })
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error('Groq letter error:', errText);
-        throw new Error(`Groq failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Groq letter response:', JSON.stringify(data));
+      const letterContent = await callGemini(prompt);
+      console.log('Gemini letter response:', letterContent);
       
-      const letterContent = data?.choices?.[0]?.message?.content || '';
-      
-      if (!letterContent) throw new Error('Empty response from Groq');
+      if (!letterContent) throw new Error('Empty response from Gemini');
       
       setLetter(letterContent);
 
