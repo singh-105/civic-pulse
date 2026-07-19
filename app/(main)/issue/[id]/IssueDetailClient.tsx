@@ -77,57 +77,71 @@ export default function IssueDetailPage({ initialIssue }: { initialIssue?: Issue
     return diffHours > 48;
   };
 
-  const generateLetter = async (issue: any) => {
+  const generateLetter = async (issueData: any) => {
     setLetterLoading(true);
     setLetterModal(true);
     try {
-      const prompt = `Generate a formal official complaint letter to municipal authority.
-Issue: ${issue.title}
-Category: ${issue.category}
-Location: ${issue.location?.address || issue.address}
-Severity: ${issue.severity}/10
-Root Cause: ${issue.issueDNA?.rootCause || issue.rootCause || ''}
-Reported: ${issue.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
-Community votes: ${issue.upvotes || 0}
+      const prompt = `Write a formal complaint letter to the municipal department about this civic issue:
+Title: ${issueData.title}
+Location: ${issueData.location?.address || issueData.address || 'As reported'}
+Category: ${issueData.category}
+Severity: ${issueData.severity}/10
+Description: ${issueData.description}
+Days unresolved: ${issueData.daysUnresolved || 2}
+Community upvotes: ${issueData.upvotes || 0}
 
-Write a professional formal letter from CivicPulse platform
-demanding immediate action. Include issue details, impact on residents,
-and deadline for resolution. Sign as "CivicPulse AI Negotiation Agent".
-Plain text only, no markdown.`;
+Write a professional, firm, 3-paragraph complaint letter demanding resolution within 48 hours.
+Address it to the Municipal Commissioner. Include issue reference ID: ${issueData.id}`;
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.4,
+          max_tokens: 1024
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error('Groq letter error:', errText);
+        throw new Error(`Groq failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Groq letter response:', JSON.stringify(data));
       
-      let letterContent = '';
-      try {
-        const response = await fetch('/api/gemini/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
-        });
-        if (response.ok) {
-          const text = await response.text();
-          if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
-            try {
-              const data = JSON.parse(text);
-              if (data.text) {
-                letterContent = data.text;
-              }
-            } catch (jsonErr) {
-              console.warn("Failed to parse JSON response:", jsonErr);
-            }
-          }
-        }
-      } catch (err) {
-        console.warn("Server API failed, falling back to client-side generation:", err);
-      }
+      const letterContent = data?.choices?.[0]?.message?.content || '';
+      
+      if (!letterContent) throw new Error('Empty response from Groq');
+      
+      setLetter(letterContent);
 
-      if (!letterContent) {
-        const { generateText } = await import("@/lib/gemini");
-        letterContent = await generateText(prompt);
-      }
-
-      setLetter(letterContent || 'Failed to generate letter. Try again.');
     } catch (err) {
-      console.error("Letter generation failed:", err);
-      setLetter('Failed to generate letter. Try again.');
+      console.error('Letter generation failed:', err);
+      // Return proper fallback letter — never return {}
+      setLetter(`Dear Municipal Commissioner,
+
+I am writing to formally report a civic infrastructure failure that has remained unresolved and requires your immediate attention.
+
+Issue: ${issueData.title}
+Location: ${issueData.location?.address || issueData.address || 'As reported'}
+Category: ${issueData.category}
+Severity Level: ${issueData.severity}/10
+Reference ID: ${issueData.id}
+
+This issue was reported by citizens of your ward and has received ${issueData.upvotes || 0} community verifications, confirming it as a genuine infrastructure failure affecting local residents. Despite being reported, no resolution action has been taken within the expected timeframe.
+
+We respectfully demand immediate inspection and resolution of this issue within 48 hours. Continued inaction will result in further escalation to senior municipal authorities and public accountability measures.
+
+Yours sincerely,
+CivicPulse AI Negotiation Agent
+On behalf of the Citizens of Ward`);
     } finally {
       setLetterLoading(false);
     }
