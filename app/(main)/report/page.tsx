@@ -55,6 +55,9 @@ const analyzeImage = async (imageBase64: string) => {
 
   try {
     const text = await groqVision(prompt, imageBase64);
+    if (!text) {
+      return groqJSON(prompt + '\n\nImage provided separately.', fallback);
+    }
     const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
     try {
       return JSON.parse(cleaned);
@@ -67,7 +70,7 @@ const analyzeImage = async (imageBase64: string) => {
       throw new Error('Invalid JSON from Groq Vision');
     }
   } catch (err) {
-    console.error('Groq Vision analysis failed, trying text/JSON helper:', err);
+    console.warn('Groq Vision analysis failed, trying text/JSON helper:', err);
     return groqJSON(prompt + '\n\nImage provided separately.', fallback);
   }
 };
