@@ -407,10 +407,10 @@ export default function DashboardPage() {
                 const currentStatus = issue.status?.toLowerCase() || "reported";
 
                 return (
-                  <div 
+                  <Link 
                     key={issue.id}
-                    onClick={() => router.push(`/issue/${issue.id}`)}
-                    className={`glass-card rounded-2xl p-5 border border-white/5 flex flex-col gap-4 cursor-pointer hover:scale-[1.01] hover:bg-white/[0.06] transition-all ${borderClass}`}
+                    href={`/issue?id=${issue.id}`}
+                    className={`glass-card rounded-2xl p-5 border border-white/5 flex flex-col gap-4 cursor-pointer hover:scale-[1.01] hover:bg-white/[0.06] transition-all block text-left ${borderClass}`}
                   >
                     {/* Header */}
                     <div className="flex justify-between items-start gap-4">
@@ -471,24 +471,33 @@ export default function DashboardPage() {
                         👍 {issue.upvotes || 0} verified upvotes
                       </span>
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => handleUpvoteNearby(issue.id, e)}
-                          disabled={hasUpvoted}
-                          className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                            hasUpvoted 
-                              ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 cursor-default" 
-                              : "bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white"
-                          }`}
-                        >
-                          <ThumbsUp className="w-3 h-3" />
-                          <span>Upvote</span>
-                        </button>
+                        <span onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleUpvoteNearby(issue.id, e);
+                            }}
+                            disabled={hasUpvoted}
+                            className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                              hasUpvoted 
+                                ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 cursor-default" 
+                                : "bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white"
+                            }`}
+                          >
+                            <ThumbsUp className="w-3 h-3" />
+                            <span>Upvote</span>
+                          </button>
+                        </span>
                         <span className="text-[10px] text-cyan-400 hover:underline flex items-center gap-0.5 font-bold">
                           View Details <ChevronRight className="w-3 h-3" />
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
 

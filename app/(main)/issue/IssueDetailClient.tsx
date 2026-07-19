@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { doc, getDoc, updateDoc, arrayUnion, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useGamification } from "@/hooks/useGamification";
 import { Issue, TimelineItem, NegotiationLogItem } from "@/types/issue";
-import { generateText } from "@/lib/gemini";
 import { 
   ArrowLeft, 
   ThumbsUp, 
@@ -26,26 +25,36 @@ import {
   X
 } from "lucide-react";
 
-export default function IssueDetailPage() {
+export default function IssueDetailPage({ initialIssue }: { initialIssue?: Issue | null }) {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { profile } = useAuth();
   const { addPoints } = useGamification();
-  const issueId = params.id as string;
+  const issueId = (params?.id as string) || searchParams.get("id") || initialIssue?.id || "";
 
-  const [issue, setIssue] = useState<Issue | null>(null);
+  const [issue, setIssue] = useState<Issue | null>(initialIssue || null);
   const [streetMemory, setStreetMemory] = useState<any>(null);
   
   // Resolution controls (Moderators)
   const [afterImage, setAfterImage] = useState<string>("");
   const [resolutionComment, setResolutionComment] = useState("");
   
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialIssue);
 
   // AI Escalation Letter states
   const [letterModal, setLetterModal] = useState(false);
   const [letter, setLetter] = useState('');
   const [letterLoading, setLetterLoading] = useState(false);
+
+  const isIssueOlderThan48Hours = (createdAt: any) => {
+    if (!createdAt) return false;
+    const createdDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - createdDate.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return diffHours > 48;
+  };
 
   const generateLetter = async (issue: any) => {
     setLetterLoading(true);
@@ -65,9 +74,38 @@ demanding immediate action. Include issue details, impact on residents,
 and deadline for resolution. Sign as "CivicPulse AI Negotiation Agent".
 Plain text only, no markdown.`;
       
-      const text = await generateText(prompt);
-      setLetter(text || 'Failed to generate letter');
-    } catch {
+      let letterContent = '';
+      try {
+        const response = await fetch('/api/gemini/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        if (response.ok) {
+          const text = await response.text();
+          if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
+            try {
+              const data = JSON.parse(text);
+              if (data.text) {
+                letterContent = data.text;
+              }
+            } catch (jsonErr) {
+              console.warn("Failed to parse JSON response:", jsonErr);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Server API failed, falling back to client-side generation:", err);
+      }
+
+      if (!letterContent) {
+        const { generateText } = await import("@/lib/gemini");
+        letterContent = await generateText(prompt);
+      }
+
+      setLetter(letterContent || 'Failed to generate letter. Try again.');
+    } catch (err) {
+      console.error("Letter generation failed:", err);
       setLetter('Failed to generate letter. Try again.');
     } finally {
       setLetterLoading(false);
@@ -282,12 +320,14 @@ Plain text only, no markdown.`;
             </button>
 
             {/* Escalate button for Citizen */}
-            <button
-              onClick={() => generateLetter(issue)}
-              className="px-4 py-2.5 bg-orange-400/10 text-orange-400 border border-orange-400/20 rounded-lg text-xs font-bold hover:bg-orange-400/20 transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              📨 Escalate
-            </button>
+            {issue.status?.toLowerCase() !== 'resolved' && isIssueOlderThan48Hours(issue.createdAt) && (
+              <button
+                onClick={() => generateLetter(issue)}
+                className="px-4 py-2.5 bg-orange-400/10 text-orange-400 border border-orange-400/20 rounded-lg text-xs font-bold hover:bg-orange-400/20 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                📨 Generate AI Escalation Letter
+              </button>
+            )}
           </div>
         )}
       </div>

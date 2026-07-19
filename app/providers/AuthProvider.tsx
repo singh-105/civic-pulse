@@ -33,7 +33,7 @@ interface AuthContextType {
   loading: boolean;
   setupRecaptcha: (containerId: string) => any;
   sendOtp: (phoneNumber: string, verifier: any) => Promise<any>;
-  confirmOtp: (code: string, bypassDetails?: { phoneNumber: string }, realConfirmationResult?: any) => Promise<any>;
+  confirmOtp: (code: string, realConfirmationResult?: any) => Promise<any>;
   registerProfile: (
     uid: string,
     phone: string,
@@ -145,42 +145,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error("Error sending SMS OTP:", error);
       setLoading(false);
-      
-      console.warn("OTP bypass initiated for developer sandbox.");
-      return { 
-        success: true, 
-        isDemoBypass: true, 
-        mockToken: "123456", 
-        phoneNumber: formattedPhone 
-      };
+      throw error;
     }
   };
 
-  const confirmOtp = async (code: string, bypassDetails?: { phoneNumber: string }, realConfirmationResult?: any) => {
+  const confirmOtp = async (code: string, realConfirmationResult?: any) => {
     setLoading(true);
     try {
-      if (bypassDetails) {
-        const mockUid = "demo_user_" + bypassDetails.phoneNumber.replace(/\+/g, "");
-        const userDocRef = doc(db, "users", mockUid);
-        const docSnap = await getDoc(userDocRef);
-        
-        const mockUser = {
-          uid: mockUid,
-          phoneNumber: bypassDetails.phoneNumber,
-        } as FirebaseUser;
-
-        setUser(mockUser);
-        
-        if (docSnap.exists()) {
-          const profileData = docSnap.data() as UserProfile;
-          setProfile(profileData);
-          setUserRole((profileData.role?.trim().toLowerCase() as any) || "citizen");
-        }
-        
-        setLoading(false);
-        return { success: true, user: mockUser, isNewUser: !docSnap.exists(), uid: mockUid };
-      }
-
       if (!realConfirmationResult) {
         throw new Error("No pending OTP requests.");
       }

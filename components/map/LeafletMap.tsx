@@ -266,12 +266,12 @@ export default function LeafletMap({
                       {issue.status}
                     </span>
                   </div>
-                  <button
-                    onClick={() => router.push(`/issue/${issue.id}`)}
-                    className="w-full bg-[#00d4ff] hover:bg-[#00b2d6] text-black font-bold text-xs py-2 px-3 rounded shadow transition-all cursor-pointer text-center block"
+                  <a
+                    href={`/issue?id=${issue.id}`}
+                    className="w-full bg-[#00d4ff] hover:bg-[#00b2d6] text-black font-bold text-xs py-2 px-3 rounded shadow transition-all cursor-pointer text-center block no-underline"
                   >
                     View Details & Pulse Log
-                  </button>
+                  </a>
                 </div>
               </Popup>
             </CircleMarker>

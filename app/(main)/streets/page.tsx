@@ -4,6 +4,7 @@ import { useState } from "react";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
+import Link from "next/link";
 import { 
   Search, 
   Activity, 
@@ -191,7 +192,11 @@ export default function StreetsPage() {
               
               <div className="flex flex-col gap-3 max-h-[220px] overflow-y-auto pr-1">
                 {streetIssues.map((issue) => (
-                  <div key={issue.id} className="p-3 bg-white/5 border border-white/5 rounded-lg text-xs flex justify-between items-center hover:bg-white/10 transition-colors">
+                  <Link 
+                    key={issue.id} 
+                    href={`/issue?id=${issue.id}`}
+                    className="p-3 bg-white/5 border border-white/5 rounded-lg text-xs flex justify-between items-center hover:bg-white/10 transition-colors block text-left"
+                  >
                     <div className="flex items-center gap-3">
                       <Clock className="w-4 h-4 text-cyan-400 shrink-0" />
                       <div>
@@ -206,7 +211,7 @@ export default function StreetsPage() {
                     }`}>
                       {issue.status}
                     </span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

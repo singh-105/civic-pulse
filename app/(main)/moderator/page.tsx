@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Issue } from "@/types/issue";
 import MapView from "@/components/map/MapView";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { 
   ShieldAlert, 
   MapPin, 
@@ -301,10 +302,10 @@ export default function ModeratorPage() {
               const severityColor = item.severity >= 8 ? "text-red-400 bg-red-500/10 border-red-500/20" : item.severity >= 5 ? "text-orange-400 bg-orange-500/10 border-orange-500/20" : "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
               
               return (
-                <div 
+                <Link 
                   key={item.id}
-                  onClick={() => router.push(`/issue/${item.id}`)}
-                  className={`bg-[#0f0f23]/60 rounded-2xl p-4.5 border border-white/5 hover:bg-white/[0.05] transition-all flex flex-col gap-3.5 cursor-pointer ${borderClass}`}
+                  href={`/issue?id=${item.id}`}
+                  className={`bg-[#0f0f23]/60 rounded-2xl p-4.5 border border-white/5 hover:bg-white/[0.05] transition-all flex flex-col gap-3.5 cursor-pointer block text-left ${borderClass}`}
                 >
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex items-center gap-3 truncate">
@@ -337,7 +338,11 @@ export default function ModeratorPage() {
                   {/* Actions buttons */}
                   <div className="flex justify-end gap-2 border-t border-white/5 pt-2.5">
                     <button
-                      onClick={(e) => handleReject(item.id, e)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleReject(item.id, e);
+                      }}
                       disabled={actionLoading === item.id + "_reject"}
                       className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1 disabled:opacity-40"
                     >
@@ -346,7 +351,11 @@ export default function ModeratorPage() {
                     </button>
                     
                     <button
-                      onClick={(e) => handleVerify(item, e)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleVerify(item, e);
+                      }}
                       disabled={actionLoading === item.id}
                       className="px-3 py-1.5 bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 rounded-xl text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1 disabled:opacity-40"
                     >
@@ -356,7 +365,7 @@ export default function ModeratorPage() {
 
 
                   </div>
-                </div>
+                </Link>
               );
             })}
             
