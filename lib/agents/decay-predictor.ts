@@ -47,7 +47,7 @@ Predict infrastructure risk for next 7 days.`;
 
 /**
  * Predicts infrastructure decay and hazard risk levels across wards/zones
- * by correlating weather, news data, and active issues via Gemini.
+ * by correlating weather, news data, and active issues via Groq.
  */
 export async function generateDecayPredictions(city: string = "Mumbai"): Promise<DecayPredictionResult> {
   try {

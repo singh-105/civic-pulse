@@ -154,7 +154,7 @@ export default function MapPage() {
             }`}
           >
             <span className="flex items-center gap-2">
-              <Flame className="w-4 h-4" /> Gemini Heatmap Layer
+              <Flame className="w-4 h-4" /> AI Heatmap Layer
             </span>
             <span className="text-[9px] uppercase">{showHeatmap ? "ON" : "OFF"}</span>
           </button>

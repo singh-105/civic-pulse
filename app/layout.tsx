@@ -15,7 +15,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "CivicPulse | Civic Redressal Ledger & AI Advocacy Engine",
-  description: "A premium glassmorphic civic tech platform empowering citizens and moderators to report, escalate, and predict municipal issues using Gemini AI.",
+  description: "A premium glassmorphic civic tech platform empowering citizens and moderators to report, escalate, and predict municipal issues using Groq AI.",
 };
 
 export default function RootLayout({

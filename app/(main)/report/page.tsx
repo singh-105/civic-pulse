@@ -306,7 +306,7 @@ const fetchUserLocation = () => {
     }
   };
 
-  // Trigger Gemini Vision Analysis
+  // Trigger Groq Vision Analysis
   const triggerAiAnalysis = async (base64Img: string) => {
     if (!base64Img) return;
     setAiAnalyzing(true);
@@ -912,7 +912,7 @@ const fetchUserLocation = () => {
         <div className="lg:col-span-5 flex flex-col gap-4">
           <div>
             <p className="text-xs uppercase tracking-widest text-slate-500">Diagnostic Grid</p>
-            <h3 className="text-lg font-bold text-white mt-0.5">Gemini Incident DNA</h3>
+            <h3 className="text-lg font-bold text-white mt-0.5">Groq Incident DNA</h3>
           </div>
 
           <div className="glass-card rounded-2xl p-5 border border-white/5 min-h-[300px] flex flex-col gap-4">
@@ -1003,7 +1003,7 @@ const fetchUserLocation = () => {
                 <div className="text-[10px] text-slate-500 flex items-start gap-1.5 p-2 border border-white/5 rounded-xl">
                   <Info className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
                   <p className="leading-tight">
-                    Incident DNA is processed using Gemini Vision's 14-point municipal failure taxonomy model.
+                    Incident DNA is processed using Groq Vision's 14-point municipal failure taxonomy model.
                   </p>
                 </div>
 
@@ -1015,7 +1015,7 @@ const fetchUserLocation = () => {
                 </div>
                 <span className="font-bold text-slate-400 text-xs">Awaiting Visual Proof</span>
                 <p className="text-[10px] text-slate-600 mt-1 max-w-[200px] leading-relaxed">
-                  Upload an issue photo in Step 1 to trigger the Gemini Vision incident diagnostic models.
+                  Upload an issue photo in Step 1 to trigger the Groq Vision incident diagnostic models.
                 </p>
               </div>
             )}

@@ -4,7 +4,7 @@ import { groqText } from "@/lib/groq";
 
 /**
  * Updates or creates the street memory profile, calculates its health score,
- * and calls Gemini to analyze historical patterns to update the insight text.
+ * and calls Groq to analyze historical patterns to update the insight text.
  */
 export async function updateStreetMemory(streetName: string, newCategoryOrIssue: any): Promise<void> {
   if (!streetName) return;
