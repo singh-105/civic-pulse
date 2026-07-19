@@ -1,12 +1,7 @@
 {
   "hosting": {
-    "site": "community-hero-66083",
     "public": "out",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
         "source": "/issue/**",

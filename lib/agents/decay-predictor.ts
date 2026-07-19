@@ -3,8 +3,7 @@ import { db } from "@/lib/firebase";
 import { fetchWeatherForecast } from "@/lib/weather";
 import { searchExa } from "@/lib/exa";
 import { fetchNews } from "@/lib/newsdata";
-import { generateText } from "@/lib/gemini";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateText, callGemini } from "@/lib/gemini";
 
 export interface ZonePrediction {
   zone: string;
@@ -39,12 +38,7 @@ Analyze infrastructure risk for next 7 days. Return ONLY valid JSON, no markdown
   "summary": "2 sentence summary of overall ward risk"
 }`;
 
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const response = await model.generateContent(prompt);
-    const text = response.response.text() || '';
+    const text = await callGemini(prompt);
     console.log('Gemini raw response:', text);
     
     const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();

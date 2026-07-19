@@ -1,16 +1,9 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { callGemini } from "@/lib/gemini"
 import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
   try {
     const { imageBase64 } = await req.json()
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || ""
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-
-    const rawData = imageBase64.includes(",") ? imageBase64.split(",")[1] : imageBase64;
-    const mimeMatch = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,/);
-    const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
 
     const promptText = `You are CivicPulse AI for Indian municipal infrastructure.
 Analyze this image carefully. Identify the PRIMARY civic issue.
@@ -29,17 +22,7 @@ Look at image carefully. Do NOT default to POTHOLE.
 Return ONLY valid JSON no markdown no explanation:
 {"category":"GARBAGE","subcategory":"Illegal Dumping","severity":7,"rootCause":"Inadequate waste collection in locality","affectedPopulation":"200 residents","urgency":"High","recommendedFix":"Emergency waste removal and CCTV installation"}`;
 
-    const response = await model.generateContent([
-      promptText,
-      {
-        inlineData: {
-          data: rawData,
-          mimeType: mimeType
-        }
-      }
-    ]);
-
-    const text = response.response.text() || '{}'
+    const text = await callGemini(promptText, imageBase64)
     const clean = text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim()
     
     try {

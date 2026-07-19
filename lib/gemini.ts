@@ -1,14 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-function getGeminiClient() {
-  const key = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
-  if (!key) {
-    throw new Error("Gemini API key not set");
-  }
-  return new GoogleGenerativeAI(key);
-}
-
-interface AnalysisResult {
+export interface AnalysisResult {
   category: string;
   subcategory: string;
   severity: number;
@@ -21,11 +11,60 @@ interface AnalysisResult {
   isFallback?: boolean;
 }
 
+export const callGemini = async (prompt: string, imageBase64?: string, systemInstruction?: string): Promise<string> => {
+  const parts: any[] = [{ text: prompt }];
+  
+  if (imageBase64) {
+    const base64Data = imageBase64.includes(',') 
+      ? imageBase64.split(',')[1] 
+      : imageBase64;
+    parts.push({
+      inline_data: {
+        mime_type: 'image/jpeg',
+        data: base64Data
+      }
+    });
+  }
+
+  const reqBody: any = {
+    contents: [{ parts }],
+    generationConfig: {
+      temperature: 0.3,
+      maxOutputTokens: 1024
+    }
+  };
+
+  if (systemInstruction) {
+    reqBody.systemInstruction = {
+      parts: [{ text: systemInstruction }]
+    };
+  }
+
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reqBody)
+    }
+  );
+
+  const data = await response.json();
+  
+  if (data.error) {
+    console.error('Gemini error:', data.error);
+    throw new Error(data.error.message);
+  }
+  
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return text.replace(/```json/g, '').replace(/```/g, '').trim();
+};
+
 /**
- * Analyzes a base64 encoded image using Gemini 1.5 Flash
+ * Analyzes a base64 encoded image using Gemini 2.0 REST API
  */
 export async function analyzeImage(base64Image: string, customPrompt?: string): Promise<AnalysisResult> {
-  // Direct client-side and server-side analysis
   const imageAnalysisPrompt = `You are an expert municipal infrastructure AI.
 Analyze this image carefully and identify the EXACT civic issue visible.
 
@@ -56,28 +95,7 @@ Be accurate. Base category ONLY on what you visually see in image.
 Do NOT default to pothole. Look at actual image content.`;
 
   try {
-    const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const rawData = base64Image.replace(/^data:image\/\w+;base64,/, '');
-    const mimeMatch = base64Image.match(/^data:([A-Za-z-+\/]+);base64,/);
-    const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
-
-    const imagePart = {
-      inlineData: {
-        data: rawData,
-        mimeType: mimeType
-      }
-    };
-
-    const response = await model.generateContent([
-      imageAnalysisPrompt,
-      imagePart
-    ]);
-
-    const text = response.response.text() || '';
-
-    // Strip any markdown if present
+    const text = await callGemini(imageAnalysisPrompt, base64Image);
     const clean = text.replace(/```json|```/g, '').trim();
     try {
       return JSON.parse(clean);
@@ -107,19 +125,12 @@ Do NOT default to pothole. Look at actual image content.`;
 }
 
 /**
- * Generates text completions using Gemini 1.5 Flash
+ * Generates text completions using Gemini 2.0 REST API
  */
 export async function generateText(prompt: string, systemInstruction?: string): Promise<string> {
-  // Direct client-side and server-side text generation
   try {
-    const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      systemInstruction: systemInstruction 
-    });
-
-    const response = await model.generateContent(prompt);
-    return (response.response.text() || '').trim();
+    const text = await callGemini(prompt, undefined, systemInstruction);
+    return text.trim();
   } catch (error) {
     console.error("Gemini text generation failed:", error);
     return '{}';
