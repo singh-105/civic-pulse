@@ -5,7 +5,7 @@
     "rewrites": [
       {
         "source": "/issue/**",
-        "destination": "/issue/1/index.html"
+        "destination": "/issue/1.html"
       },
       {
         "source": "**",
