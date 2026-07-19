@@ -29,6 +29,13 @@ export default function StreetsPage() {
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState("");
 
+  const goToIssue = (issueId: string) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('currentIssueId', issueId);
+    }
+    window.location.href = `/issue/1?id=${issueId}`;
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery) return;
@@ -192,15 +199,10 @@ export default function StreetsPage() {
               
               <div className="flex flex-col gap-3 max-h-[220px] overflow-y-auto pr-1">
                 {streetIssues.map((issue) => (
-                  <Link 
+                  <div 
                     key={issue.id} 
-                    href={`/issue/${issue.id}`}
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        sessionStorage.setItem('currentIssueId', issue.id);
-                      }
-                    }}
-                    className="p-3 bg-white/5 border border-white/5 rounded-lg text-xs flex justify-between items-center hover:bg-white/10 transition-colors block text-left"
+                    onClick={() => goToIssue(issue.id)}
+                    className="p-3 bg-white/5 border border-white/5 rounded-lg text-xs flex justify-between items-center hover:bg-white/10 transition-colors block text-left cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       <Clock className="w-4 h-4 text-cyan-400 shrink-0" />
@@ -216,7 +218,7 @@ export default function StreetsPage() {
                     }`}>
                       {issue.status}
                     </span>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>

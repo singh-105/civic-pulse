@@ -35,6 +35,13 @@ export default function ModeratorPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  const goToIssue = (issueId: string) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('currentIssueId', issueId);
+    }
+    window.location.href = `/issue/1?id=${issueId}`;
+  };
   
   // Escalation Modal state
 
@@ -302,14 +309,9 @@ export default function ModeratorPage() {
               const severityColor = item.severity >= 8 ? "text-red-400 bg-red-500/10 border-red-500/20" : item.severity >= 5 ? "text-orange-400 bg-orange-500/10 border-orange-500/20" : "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
               
               return (
-                <Link 
+                <div 
                   key={item.id}
-                  href={`/issue/${item.id}`}
-                  onClick={() => {
-                    if (typeof window !== "undefined") {
-                      sessionStorage.setItem('currentIssueId', item.id);
-                    }
-                  }}
+                  onClick={() => goToIssue(item.id)}
                   className={`bg-[#0f0f23]/60 rounded-2xl p-4.5 border border-white/5 hover:bg-white/[0.05] transition-all flex flex-col gap-3.5 cursor-pointer block text-left ${borderClass}`}
                 >
                   <div className="flex justify-between items-start gap-4">
@@ -370,7 +372,7 @@ export default function ModeratorPage() {
 
 
                   </div>
-                </Link>
+                </div>
               );
             })}
             

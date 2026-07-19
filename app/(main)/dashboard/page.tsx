@@ -104,6 +104,13 @@ export default function DashboardPage() {
   const [userData, setUserData] = useState<any>(null);
   const profile = userData || authProfile;
   const { addPoints } = useGamification();
+
+  const goToIssue = (issueId: string) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('currentIssueId', issueId);
+    }
+    window.location.href = `/issue/1?id=${issueId}`;
+  };
   
   const [issues, setIssues] = useState<Issue[]>([]);
   const [myIssues, setMyIssues] = useState<Issue[]>([]);
@@ -407,14 +414,9 @@ export default function DashboardPage() {
                 const currentStatus = issue.status?.toLowerCase() || "reported";
 
                 return (
-                  <Link 
+                  <div 
                     key={issue.id}
-                    href={`/issue/${issue.id}`}
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        sessionStorage.setItem('currentIssueId', issue.id);
-                      }
-                    }}
+                    onClick={() => goToIssue(issue.id)}
                     className={`glass-card rounded-2xl p-5 border border-white/5 flex flex-col gap-4 cursor-pointer hover:scale-[1.01] hover:bg-white/[0.06] transition-all block text-left ${borderClass}`}
                   >
                     {/* Header */}
@@ -502,7 +504,7 @@ export default function DashboardPage() {
                         </span>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
 

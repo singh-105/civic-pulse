@@ -32,8 +32,27 @@ export default function IssueDetailPage({ initialIssue }: { initialIssue?: Issue
   const { profile } = useAuth();
   const { addPoints } = useGamification();
   
-  const pathId = params?.id as string;
-  const issueId = (pathId === "1" ? (typeof window !== "undefined" ? sessionStorage.getItem("currentIssueId") : "") : pathId) || searchParams.get("id") || initialIssue?.id || "";
+  const getIssueId = () => {
+    if (typeof window === "undefined") return initialIssue?.id || "";
+    
+    // Try URL query param first
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryId = urlParams.get('id');
+    if (queryId) return queryId;
+    
+    // Fallback to sessionStorage
+    const storedId = sessionStorage.getItem('currentIssueId');
+    if (storedId) return storedId;
+    
+    // Fallback to URL path
+    const pathParts = window.location.pathname.split('/');
+    const pathId = pathParts[pathParts.length - 1];
+    if (pathId && pathId !== '1') return pathId;
+    
+    return initialIssue?.id || "";
+  };
+
+  const issueId = getIssueId();
 
   const [issue, setIssue] = useState<Issue | null>(initialIssue || null);
   const [streetMemory, setStreetMemory] = useState<any>(null);

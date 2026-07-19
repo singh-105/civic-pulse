@@ -85,6 +85,13 @@ export default function LeafletMap({
   const router = useRouter();
   const [issues, setIssues] = useState<Issue[]>([]);
 
+  const goToIssue = (issueId: string) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('currentIssueId', issueId);
+    }
+    window.location.href = `/issue/1?id=${issueId}`;
+  };
+
   // Fetch ALL issues on mount to ensure map is never empty
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -267,17 +274,12 @@ export default function LeafletMap({
                       {issue.status}
                     </span>
                   </div>
-                  <Link
-                    href={`/issue/${issue.id}`}
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        sessionStorage.setItem('currentIssueId', issue.id);
-                      }
-                    }}
-                    className="w-full bg-[#00d4ff] hover:bg-[#00b2d6] text-black font-bold text-xs py-2 px-3 rounded shadow transition-all cursor-pointer text-center block no-underline"
+                  <button
+                    onClick={() => goToIssue(issue.id)}
+                    className="w-full bg-[#00d4ff] hover:bg-[#00b2d6] text-black font-bold text-xs py-2 px-3 rounded shadow transition-all cursor-pointer text-center block"
                   >
                     View Details & Pulse Log
-                  </Link>
+                  </button>
                 </div>
               </Popup>
             </CircleMarker>
