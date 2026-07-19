@@ -9,9 +9,15 @@
     ],
     "rewrites": [
       {
+        "source": "/issue/**",
+        "destination": "/issue/1/index.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
-    ]
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false
   }
 }

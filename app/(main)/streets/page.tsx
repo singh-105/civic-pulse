@@ -194,7 +194,7 @@ export default function StreetsPage() {
                 {streetIssues.map((issue) => (
                   <Link 
                     key={issue.id} 
-                    href={`/issue?id=${issue.id}`}
+                    href={`/issue/${issue.id}`}
                     className="p-3 bg-white/5 border border-white/5 rounded-lg text-xs flex justify-between items-center hover:bg-white/10 transition-colors block text-left"
                   >
                     <div className="flex items-center gap-3">

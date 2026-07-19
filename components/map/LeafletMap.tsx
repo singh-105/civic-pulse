@@ -6,6 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Issue } from "@/types/issue";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -266,12 +267,12 @@ export default function LeafletMap({
                       {issue.status}
                     </span>
                   </div>
-                  <a
-                    href={`/issue?id=${issue.id}`}
+                  <Link
+                    href={`/issue/${issue.id}`}
                     className="w-full bg-[#00d4ff] hover:bg-[#00b2d6] text-black font-bold text-xs py-2 px-3 rounded shadow transition-all cursor-pointer text-center block no-underline"
                   >
                     View Details & Pulse Log
-                  </a>
+                  </Link>
                 </div>
               </Popup>
             </CircleMarker>

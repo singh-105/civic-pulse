@@ -304,7 +304,7 @@ export default function ModeratorPage() {
               return (
                 <Link 
                   key={item.id}
-                  href={`/issue?id=${item.id}`}
+                  href={`/issue/${item.id}`}
                   className={`bg-[#0f0f23]/60 rounded-2xl p-4.5 border border-white/5 hover:bg-white/[0.05] transition-all flex flex-col gap-3.5 cursor-pointer block text-left ${borderClass}`}
                 >
                   <div className="flex justify-between items-start gap-4">

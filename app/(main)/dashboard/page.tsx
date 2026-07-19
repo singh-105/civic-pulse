@@ -409,7 +409,7 @@ export default function DashboardPage() {
                 return (
                   <Link 
                     key={issue.id}
-                    href={`/issue?id=${issue.id}`}
+                    href={`/issue/${issue.id}`}
                     className={`glass-card rounded-2xl p-5 border border-white/5 flex flex-col gap-4 cursor-pointer hover:scale-[1.01] hover:bg-white/[0.06] transition-all block text-left ${borderClass}`}
                   >
                     {/* Header */}
