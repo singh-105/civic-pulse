@@ -3,7 +3,7 @@ import { db } from "@/lib/firebase";
 import { fetchWeatherForecast } from "@/lib/weather";
 import { searchExa } from "@/lib/exa";
 import { fetchNews } from "@/lib/newsdata";
-import { generateText, callGemini } from "@/lib/gemini";
+import { groqJSON } from "@/lib/groq";
 
 export interface ZonePrediction {
   zone: string;
@@ -18,51 +18,31 @@ export interface DecayPredictionResult {
 }
 
 const generatePrediction = async (weatherData: any, issuesData: any, newsData: any) => {
-  try {
-    const prompt = `You are a civic infrastructure analyst for Indian cities.
-    
-Weather forecast: ${JSON.stringify(weatherData)}
-Recent civic issues (last 30 days): ${JSON.stringify(issuesData)}
-Local news: ${JSON.stringify(newsData)}
+  const month = new Date().getMonth();
+  const isMonsoon = month >= 5 && month <= 9;
 
-Analyze infrastructure risk for next 7 days. Return ONLY valid JSON, no markdown, no backticks:
-{
-  "predictions": [
-    {"category": "pothole", "risk": "high", "reason": "one sentence reason"},
-    {"category": "waterlogging", "risk": "critical", "reason": "one sentence reason"},
-    {"category": "garbage", "risk": "medium", "reason": "one sentence reason"},
-    {"category": "streetlight", "risk": "low", "reason": "one sentence reason"},
-    {"category": "sewage", "risk": "high", "reason": "one sentence reason"}
-  ],
-  "riskLevel": "HIGH",
-  "summary": "2 sentence summary of overall ward risk"
-}`;
+  const prompt = `You are a civic infrastructure analyst for Indian cities.
+Weather: ${JSON.stringify(weatherData)}
+Recent issues: ${JSON.stringify(issuesData)}
+News: ${JSON.stringify(newsData)}
 
-    const text = await callGemini(prompt);
-    console.log('Gemini raw response:', text);
-    
-    const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    return parsed;
+Predict infrastructure risk for next 7 days.`;
 
-  } catch (err) {
-    console.error('Gemini prediction failed:', err);
-    const month = new Date().getMonth();
-    const isMonsoon = month >= 5 && month <= 9;
-    return {
-      predictions: [
-        { category: 'pothole', risk: isMonsoon ? 'critical' : 'medium', reason: isMonsoon ? 'Monsoon season worsens road surfaces significantly' : 'Normal wear and tear expected' },
-        { category: 'waterlogging', risk: isMonsoon ? 'critical' : 'low', reason: isMonsoon ? 'Peak monsoon drain overflow risk' : 'Dry season minimal risk' },
-        { category: 'garbage', risk: 'medium', reason: 'Collection backlogs common in dense urban areas' },
-        { category: 'streetlight', risk: 'low', reason: 'No significant weather impact expected' },
-        { category: 'sewage', risk: isMonsoon ? 'high' : 'low', reason: isMonsoon ? 'Rain overload on aging sewage pipes' : 'Normal flow conditions' }
-      ],
-      riskLevel: isMonsoon ? 'HIGH' : 'MEDIUM',
-      summary: isMonsoon
-        ? 'Monsoon conditions elevate infrastructure risk across Mumbai. Potholes and waterlogging are critical concerns.'
-        : 'Moderate civic infrastructure risk. Regular monitoring recommended for garbage and road conditions.'
-    };
-  }
+  const fallback = {
+    predictions: [
+      { category: 'pothole', risk: isMonsoon ? 'critical' : 'medium', reason: isMonsoon ? 'Monsoon worsens road surfaces' : 'Normal wear expected' },
+      { category: 'waterlogging', risk: isMonsoon ? 'critical' : 'low', reason: isMonsoon ? 'Drain overflow risk during peak monsoon' : 'Dry conditions' },
+      { category: 'garbage', risk: 'medium', reason: 'Collection backlogs in dense areas' },
+      { category: 'streetlight', risk: 'low', reason: 'No weather impact expected' },
+      { category: 'sewage', risk: isMonsoon ? 'high' : 'low', reason: isMonsoon ? 'Rain overload on aging pipes' : 'Normal flow' }
+    ],
+    riskLevel: isMonsoon ? 'HIGH' : 'MEDIUM',
+    summary: isMonsoon
+      ? 'Monsoon conditions elevate infrastructure risk. Potholes and waterlogging are critical concerns this week.'
+      : 'Moderate infrastructure risk. Regular monitoring recommended.'
+  };
+
+  return groqJSON(prompt, fallback);
 };
 
 /**

@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useGamification } from "@/hooks/useGamification";
 import { Issue, TimelineItem, NegotiationLogItem } from "@/types/issue";
-import { callGemini } from "@/lib/gemini";
+import { groqText } from "@/lib/groq";
 import { 
   ArrowLeft, 
   ThumbsUp, 
@@ -78,49 +78,42 @@ export default function IssueDetailPage({ initialIssue }: { initialIssue?: Issue
     return diffHours > 48;
   };
 
-  const generateLetter = async (issueData: any) => {
+  const generateLetter = async (issue: any): Promise<void> => {
     setLetterLoading(true);
     setLetterModal(true);
-    try {
-      const prompt = `Write a formal complaint letter to the municipal department about this civic issue:
-Title: ${issueData.title}
-Location: ${issueData.location?.address || issueData.address || 'As reported'}
-Category: ${issueData.category}
-Severity: ${issueData.severity}/10
-Description: ${issueData.description}
-Days unresolved: ${issueData.daysUnresolved || 2}
-Community upvotes: ${issueData.upvotes || 0}
+    const fallbackLetter = `Dear Municipal Commissioner,
 
-Write a professional, firm, 3-paragraph complaint letter demanding resolution within 48 hours.
-Address it to the Municipal Commissioner. Include issue reference ID: ${issueData.id}`;
+I am writing to formally report a civic infrastructure failure requiring immediate attention.
 
-      const letterContent = await callGemini(prompt);
-      console.log('Gemini letter response:', letterContent);
-      
-      if (!letterContent) throw new Error('Empty response from Gemini');
-      
-      setLetter(letterContent);
+Issue: ${issue.title}
+Location: ${issue.location?.address || 'As reported'}
+Reference ID: ${issue.id}
+Severity: ${issue.severity}/10
 
-    } catch (err) {
-      console.error('Letter generation failed:', err);
-      // Return proper fallback letter — never return {}
-      setLetter(`Dear Municipal Commissioner,
-
-I am writing to formally report a civic infrastructure failure that has remained unresolved and requires your immediate attention.
-
-Issue: ${issueData.title}
-Location: ${issueData.location?.address || issueData.address || 'As reported'}
-Category: ${issueData.category}
-Severity Level: ${issueData.severity}/10
-Reference ID: ${issueData.id}
-
-This issue was reported by citizens of your ward and has received ${issueData.upvotes || 0} community verifications, confirming it as a genuine infrastructure failure affecting local residents. Despite being reported, no resolution action has been taken within the expected timeframe.
-
-We respectfully demand immediate inspection and resolution of this issue within 48 hours. Continued inaction will result in further escalation to senior municipal authorities and public accountability measures.
+This issue has been verified by ${issue.upvotes || 0} citizens and remains unresolved. We demand immediate action within 48 hours.
 
 Yours sincerely,
-CivicPulse AI Negotiation Agent
-On behalf of the Citizens of Ward`);
+CivicPulse AI Negotiation Agent`;
+
+    try {
+      const prompt = `Write a formal complaint letter to the Municipal Commissioner about this unresolved civic issue:
+
+Title: ${issue.title}
+Location: ${issue.location?.address || 'As reported'}
+Category: ${issue.category}
+Severity: ${issue.severity}/10
+Description: ${issue.description}
+Days unresolved: ${issue.daysUnresolved || 2}
+Community upvotes: ${issue.upvotes || 0}
+Reference ID: ${issue.id}
+
+Write a professional 3-paragraph complaint letter demanding resolution within 48 hours. Be firm and data-driven.`;
+
+      const letterContent = await groqText(prompt);
+      setLetter(letterContent || fallbackLetter);
+    } catch (err) {
+      console.error('Letter generation failed:', err);
+      setLetter(fallbackLetter);
     } finally {
       setLetterLoading(false);
     }

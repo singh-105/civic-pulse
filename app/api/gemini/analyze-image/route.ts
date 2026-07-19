@@ -1,4 +1,4 @@
-import { callGemini } from "@/lib/gemini"
+import { groqVision, groqJSON } from "@/lib/groq"
 import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
@@ -22,20 +22,40 @@ Look at image carefully. Do NOT default to POTHOLE.
 Return ONLY valid JSON no markdown no explanation:
 {"category":"GARBAGE","subcategory":"Illegal Dumping","severity":7,"rootCause":"Inadequate waste collection in locality","affectedPopulation":"200 residents","urgency":"High","recommendedFix":"Emergency waste removal and CCTV installation"}`;
 
-    const text = await callGemini(promptText, imageBase64)
-    const clean = text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim()
-    
+    let result;
     try {
-      return NextResponse.json(JSON.parse(clean))
-    } catch {
-      // Extract JSON from response if wrapped in text
-      const match = clean.match(/\{[\s\S]*\}/)
-      if (match) return NextResponse.json(JSON.parse(match[0]))
-      throw new Error('Invalid JSON from AI')
+      const text = await groqVision(promptText, imageBase64)
+      const clean = text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim()
+      
+      try {
+        result = JSON.parse(clean)
+      } catch {
+        const match = clean.match(/\{[\s\S]*\}/)
+        if (match) {
+          result = JSON.parse(match[0])
+        } else {
+          throw new Error('Invalid JSON from Groq Vision')
+        }
+      }
+    } catch (err) {
+      console.error('Groq Vision analyze-image route failed, trying text/JSON helper:', err);
+      const fallback = {
+        category: 'OTHER',
+        subcategory: 'Unclassified',
+        severity: 5,
+        rootCause: 'AI analysis failed - fill manually',
+        affectedPopulation: 'Unknown',
+        urgency: 'Medium',
+        recommendedFix: 'Manual inspection required',
+        isFallback: true
+      };
+      result = await groqJSON(promptText + '\n\nImage provided separately.', fallback);
     }
 
+    return NextResponse.json(result)
+
   } catch (error: any) {
-    console.error('Gemini vision error:', error.message || error)
+    console.error('Groq vision error:', error.message || error)
     return NextResponse.json({
       category: 'OTHER',
       subcategory: 'Unclassified',

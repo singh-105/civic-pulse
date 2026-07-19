@@ -8,7 +8,7 @@ import { detectDuplicateIssue } from "@/lib/agents/duplicate-detector";
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, collection, addDoc, increment, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { updateStreetMemory } from "@/lib/agents/street-memory";
-import { analyzeImage as geminiAnalyzeImage } from "@/lib/gemini";
+import { groqVision, groqJSON } from "@/lib/groq";
 import { detectAndTriggerCrisis } from "@/lib/agents/crisis-detector";
 import MapView from "@/components/map/MapView";
 import { 
@@ -30,7 +30,46 @@ import {
 
 // Image analysis (in report page):
 const analyzeImage = async (imageBase64: string) => {
-  return await geminiAnalyzeImage(imageBase64);
+  const prompt = `Analyze this civic infrastructure issue image. Return ONLY valid JSON:
+{
+  "category": "POTHOLE|GARBAGE|WATERLOGGING|STREETLIGHT|SEWAGE|CONSTRUCTION|TREE|OTHER",
+  "subcategory": "specific type",
+  "severity": 7,
+  "rootCause": "root cause in one sentence",
+  "affectedArea": "estimated affected area",
+  "urgency": "low|medium|high|critical",
+  "recommendedFix": "recommended fix in one sentence",
+  "affectedPopulation": 15
+}`;
+
+  const fallback = {
+    category: 'OTHER',
+    subcategory: 'Unclassified',
+    severity: 5,
+    rootCause: 'AI analysis temporarily unavailable',
+    affectedArea: 'Local area',
+    urgency: 'medium',
+    recommendedFix: 'Manual inspection required',
+    affectedPopulation: 15
+  };
+
+  try {
+    const text = await groqVision(prompt, imageBase64);
+    const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      const jsonStart = cleaned.indexOf('{');
+      const jsonEnd = cleaned.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        return JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));
+      }
+      throw new Error('Invalid JSON from Groq Vision');
+    }
+  } catch (err) {
+    console.error('Groq Vision analysis failed, trying text/JSON helper:', err);
+    return groqJSON(prompt + '\n\nImage provided separately.', fallback);
+  }
 };
 
 export default function ReportPage() {

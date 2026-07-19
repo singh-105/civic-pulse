@@ -1,6 +1,6 @@
 import { doc, getDoc, setDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { generateText } from "@/lib/gemini";
+import { groqText } from "@/lib/groq";
 
 /**
  * Updates or creates the street memory profile, calculates its health score,
@@ -51,26 +51,17 @@ export async function updateStreetMemory(streetName: string, newCategoryOrIssue:
     const rawScore = 100 - (activeIssues * 10) - recurringPenalty;
     const healthScore = Math.max(0, Math.min(100, rawScore));
 
-    // 2. Query Gemini for Temporal insight paragraph
-    const historySummary = issuesList
-      .map((i) => `- [Date: ${i.createdAt?.toDate ? i.createdAt.toDate().toLocaleDateString() : new Date(i.createdAt).toLocaleDateString()}] ${i.category}: ${i.description}`)
-      .join("\n");
-
-    const systemPrompt = `You are the CivicPulse Temporal Street Memory AI. Your role is to examine a street's entire history of civic reports and describe any recurring patterns in 2-3 sentences.`;
-
-    const prompt = `Analyze the civic issues reported on "${streetName}". Here is the history of reports:
-    ${historySummary}
-
-    Identify if there are recurring patterns (e.g. repetitive water logging, constant streetlight failures, seasonal pothole erosion).
-    Generate a concise summary paragraph (max 45 words) describing the street's infrastructure health history and patterns. Keep it professional.`;
-
+    // 2. Query Groq for Temporal insight paragraph
     let insight = "First issue logged. Building street health profile...";
     if (totalIssues > 1) {
+      const prompt = `Analyze these civic issues reported on ${streetName}: ${JSON.stringify(issuesList.map(i => ({ category: i.category, date: i.createdAt })))}. Write exactly 2 sentences about recurring patterns and infrastructure health. Be specific and concise.`;
+      
       try {
-        insight = await generateText(prompt, systemPrompt);
+        const resultText = await groqText(prompt);
+        insight = resultText || `${streetName} has reported ${totalIssues} civic issues. Regular monitoring and maintenance is recommended for this area.`;
       } catch (err) {
-        console.error("Gemini failed to generate street insight:", err);
-        insight = `Ongoing reports regarding ${categories.join(" and ")}. Primary stressors include active unresolved issues.`;
+        console.error("Groq failed to generate street insight:", err);
+        insight = `${streetName} has reported ${totalIssues} civic issues. Regular monitoring and maintenance is recommended for this area.`;
       }
     } else {
       insight = `Initial civic issue (${newCategory}) logged on this street. Monitoring for recurring patterns.`;

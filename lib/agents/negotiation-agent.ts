@@ -1,6 +1,6 @@
 import { collection, query, where, getDocs, doc, updateDoc, Timestamp, arrayUnion } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { generateText } from "@/lib/gemini";
+import { groqText } from "@/lib/groq";
 import { sendOfficialComplaintEmail } from "@/lib/resend";
 
 /**
@@ -64,8 +64,23 @@ export async function negotiateIssue(issue: any): Promise<void> {
   
   Explain that this issue has remained unresolved for over 48 hours, causing significant public inconvenience and safety hazards. Request a target completion date and detail how the progress will be tracked publicly on the CivicPulse portal. Output ONLY the letter text.`;
 
+  const fallbackLetter = `Dear ${deptName} Commissioner,
+
+I am writing to formally report a civic infrastructure failure requiring immediate attention.
+
+Issue: ${issue.title || 'As reported'}
+Location: ${issue.location?.address || issue.address || 'As reported'}
+Reference ID: ${issue.id}
+Severity: ${issue.severity}/10
+
+This issue remains unresolved. We demand immediate action.
+
+Yours sincerely,
+CivicPulse AI Negotiation Agent`;
+
   try {
-    const complaintLetter = await generateText(prompt, systemPrompt);
+    const fullPrompt = `${systemPrompt}\n\nTask:\n${prompt}`;
+    const complaintLetter = (await groqText(fullPrompt)) || fallbackLetter;
 
     // Send email using Resend
     const subject = `URGENT: Municipal Redressal Request - Issue #${issue.id} (${issue.category.toUpperCase()})`;

@@ -1,6 +1,6 @@
 import { collection, query, where, getDocs, doc, setDoc, addDoc, updateDoc, Timestamp, arrayUnion } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { generateText } from "@/lib/gemini";
+import { groqText } from "@/lib/groq";
 
 function getHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3;
@@ -54,22 +54,17 @@ export async function detectAndTriggerCrisis(newIssue: any): Promise<string | nu
 
     if (totalNearby.length >= 3) {
 
-      // Compile summaries of all issues for Gemini
-      const issueBulletList = totalNearby
-        .map((iss, idx) => `${idx + 1}. [Category: ${iss.category}] Description: ${iss.description} at Address: ${iss.address}`)
-        .join("\n");
+      // Compile summaries of all issues for Groq
+      const prompt = `Emergency civic crisis detected. ${totalNearby.length} infrastructure failures reported in 500m radius within 60 minutes: ${totalNearby.map(i => i.title || i.description).join(', ')}. Write a 40-word urgent situation brief for emergency response teams.`;
 
-      const prompt = `A cluster of ${totalNearby.length} municipal infrastructure issues has been reported in the same 500-meter radius within the last hour.
-      Here is the list of active issues:
-      ${issueBulletList}
-
-      Summarize this crisis situation in a short, urgent brief (maximum 40 words) for emergency response teams. Do not mention HTML or JSON. Just write the brief summary.`;
-
-      let summary = "Multiple civic issues reported in close proximity indicating local infrastructure failure.";
+      let summary = "";
       try {
-        summary = await generateText(prompt, "You are a crisis monitoring coordinator AI. Provide highly concise situation updates.");
+        summary = await groqText(prompt);
       } catch (err) {
-        console.error("Gemini failed to generate crisis summary:", err);
+        console.error("Groq failed to generate crisis summary:", err);
+      }
+      if (!summary) {
+        summary = `URGENT: ${totalNearby.length} civic failures detected in concentrated area. Immediate municipal response required. Categories affected: ${[...new Set(totalNearby.map(i => i.category))].join(', ')}.`;
       }
 
       // Check if there is already an active crisis event in this exact 500m radius
