@@ -31,7 +31,9 @@ export default function IssueDetailPage({ initialIssue }: { initialIssue?: Issue
   const router = useRouter();
   const { profile } = useAuth();
   const { addPoints } = useGamification();
-  const issueId = (params?.id as string) || searchParams.get("id") || initialIssue?.id || "";
+  
+  const pathId = params?.id as string;
+  const issueId = (pathId === "1" ? (typeof window !== "undefined" ? sessionStorage.getItem("currentIssueId") : "") : pathId) || searchParams.get("id") || initialIssue?.id || "";
 
   const [issue, setIssue] = useState<Issue | null>(initialIssue || null);
   const [streetMemory, setStreetMemory] = useState<any>(null);

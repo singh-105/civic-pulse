@@ -269,6 +269,11 @@ export default function LeafletMap({
                   </div>
                   <Link
                     href={`/issue/${issue.id}`}
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        sessionStorage.setItem('currentIssueId', issue.id);
+                      }
+                    }}
                     className="w-full bg-[#00d4ff] hover:bg-[#00b2d6] text-black font-bold text-xs py-2 px-3 rounded shadow transition-all cursor-pointer text-center block no-underline"
                   >
                     View Details & Pulse Log
